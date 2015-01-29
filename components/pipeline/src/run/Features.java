@@ -49,9 +49,9 @@ public class Features {
   public static void writeFeatures(List<Document> matchingSentences, 
       SentenceFeatureExtractor sfe, String relation,  
       Map<String, String> classMap, BufferedWriter bw,  
-      Set<String> featuretypes) throws IOException {
+      Set<String> featuretypes, boolean normalize) throws IOException {
     Instance inst = instance(matchingSentences, sfe, relation, classMap, 
-        featuretypes).build();
+        featuretypes, normalize).build();
     //inst.writeDelimitedTo(outToClient);
     
     Document sentence = matchingSentences.get(0);
@@ -107,7 +107,7 @@ public class Features {
   static boolean firstMethodInvocationInstance = true;
   public static Instance.Builder instance(List<Document> matchingSentences, 
       SentenceFeatureExtractor sfe, String relation,  
-      Map<String, String> classMap,  Set<String> featuretypes) {
+      Map<String, String> classMap,  Set<String> featuretypes, boolean normalize) {
     if (!DocumentExtractor.hasRelation(matchingSentences.get(0), relation)) {
       throw new IllegalStateException("Training sentences don't contain relation: " + relation);
     }
@@ -185,7 +185,7 @@ public class Features {
       inst = sfe.addDistanceBins(inst, matchingSentences, relation);
       
       inst = sfe.sortAndSumFeatures(inst);
-      inst = sfe.normalizeFeaturesToMax(inst);
+      if (normalize) inst = sfe.normalizeFeaturesToMax(inst);
   
       inst = sfe.addArgBrownNgram(inst, matchingSentences, relation, classMap, 1, 2, 0);
       inst = sfe.addArgBrownNgram(inst, matchingSentences, relation, classMap, 1, 6, 0);
@@ -229,7 +229,7 @@ public class Features {
       inst = sfe.addSlotLogCharacterCount(inst, matchingSentences, relation);
       
       inst = sfe.sortAndSumFeatures(inst);
-      inst = sfe.normalizeFeaturesToMax(inst);
+      if (normalize) inst = sfe.normalizeFeaturesToMax(inst);
       if (firstMethodInvocationInstance) {
         logger.debug("Nr. of features for instance: " + inst.getFeatureList().size());
       }
@@ -550,7 +550,7 @@ public class Features {
 
   public static void main(String[] args) throws IOException {
     if (args.length < 6) {
-      throw new IllegalArgumentException("Features <feature_map> <brown_classes> <single=true|false> <update_map=true|false> <sentences_in> <features_out> <featuretypes>");
+      throw new IllegalArgumentException("Features <feature_map> <brown_classes> <single=true|false> <update_map=true|false> <sentences_in> <features_out> <featuretypes> <normalize=true|false>");
     }
     File featureMapFile = new File(args[0]);
     String classesFn = args[1];
@@ -579,6 +579,7 @@ public class Features {
       }
     }
     logger.debug("Feature types: " + featuretypes);
+    boolean normalize = args[8].equals("true");
     
     Map<String, String> vocabMap = null;
     vocabMap = new HashMap<String, String>();
@@ -624,7 +625,7 @@ public class Features {
           && (!arguments.equals(prevArgs) || !relation.equals(prevRelation) || singleSentenceMode)) {
         // relation or arguments changed, so the previous group is finished
         writeFeatures(matchingSentences, sfe, prevRelation, vocabMap,
-            featuresBw, featuretypes);
+            featuresBw, featuretypes, normalize);
         matchingSentences.clear();
       }
       matchingSentences.add(sentence);

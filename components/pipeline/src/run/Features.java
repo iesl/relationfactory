@@ -635,7 +635,7 @@ public class Features {
     // do not forget to process last group
     if (prevRelation != null) {
       writeFeatures(matchingSentences, sfe, prevRelation, vocabMap, featuresBw, 
-          featuretypes);
+          featuretypes, normalize);
       matchingSentences.clear();
     }
     featuresBw.close();

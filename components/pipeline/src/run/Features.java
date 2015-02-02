@@ -599,7 +599,7 @@ public class Features {
       }
     }
     logger.debug("Feature types: " + featuretypes);
-    boolean normalize = args[8].equals("true");
+    boolean normalize = args[7].equals("true");
     
     Map<String, String> vocabMap = null;
     vocabMap = new HashMap<String, String>();

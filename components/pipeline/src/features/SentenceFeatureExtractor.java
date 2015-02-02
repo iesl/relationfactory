@@ -92,6 +92,7 @@ public class SentenceFeatureExtractor {
   public static final String PPMI_FEATURE = "#PPMI#";
   public static final String PREFIX_OVERLAP_FEATURE = "#PRF_OVLP#";
   public static final String SKIP_FEATURE = "#SKIP#";
+  public static final String RELATION_FEATURE = "#RELATION#";
   public static final String STEM_FEATURE_PREFIX = "#STEM#";
   public static final String START_LETTERS_PREFIX = "#STT_LTRS#";
   public static final String SUFFIX_OVERLAP_FEATURE = "#SUF_OVLP#";
@@ -1844,6 +1845,27 @@ public class SentenceFeatureExtractor {
       addTopics(fgrpInst, sentence);
     }
     return fgrpInst;
+  }
+
+
+  public Builder addRelation(Builder inst, List<Document> matchingSentences, String relation) {
+    for (Document doc : matchingSentences) {
+        for (int cgi = 0; cgi < doc.getCompoundCount(); ++cgi) {
+            CompoundGroup cg = doc.getCompound(cgi);
+            if (cg.getType() == AnnotationType.PROPERTY) {
+                for (int ci = 0; ci < cg.getCompoundCount(); ++ci) {
+                    Compound c = cg.getCompound(ci);
+                    if (c.getText().equals(relation)) {
+                      addFeature(inst, RELATION_FEATURE + relation, 1.0);
+                      // First sentence / relation is enough.
+                      return inst;
+                    }
+                }
+            }
+        }
+    }
+    // No relation annotation found.
+    return inst;
   }
 
   public Builder addIntertext(Builder inst, List<Document> matchingSentences, String relation) {

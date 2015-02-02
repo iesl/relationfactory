@@ -32,6 +32,7 @@ public class Features {
   public static final String FGRP_NGRAM_LONG_DIRECTED = "ngram_long_directed";
   public static final String FGRP_BROWN_NGRAM_DIRECTED = "brown_ngram_directed";
   public static final String FGRP_BROWN_NGRAM_LONG_DIRECTED = "brown_ngram_long_directed";
+  public static final String FGRP_RELATION = "relation";
   public static final String FGRP_SUB_BROWN_NGRAM_DIRECTED = "sub_brown_ngram_directed";
   public static final String FGRP_SUB_BROWN_NGRAM_LONG_DIRECTED = "sub_brown_ngram_long_directed";
   public static final String FGRP_SKIP_FUZZY = "skip_fuzzy";
@@ -484,6 +485,24 @@ public class Features {
         logger.debug("Nr. of features for instance: " + inst.getFeatureList().size());
       }
     }
+
+    if (featuretypes.contains(FGRP_RELATION)) {
+      if (firstMethodInvocationInstance) {
+        logger.debug("Adding feature set: " + FGRP_RELATION);
+      }
+      Instance.Builder fgrpInst = Instance.newBuilder();
+
+      fgrpInst = sfe.addRelation(fgrpInst, matchingSentences, relation);
+
+      // Just one feature, already normalized.
+      //fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
+      //fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+
+      inst = sfe.mergeFeatures(inst, fgrpInst.build());
+      if (firstMethodInvocationInstance) {
+        logger.debug("Nr. of features for instance: " + inst.getFeatureList().size());
+      }
+    }
     
     if (featuretypes.contains(FGRP_SKIP_EXACT)) {
       if (firstMethodInvocationInstance) {
@@ -572,6 +591,7 @@ public class Features {
             !type.equals(FGRP_SKIP_EXACT) &&
             !type.equals(FGRP_INTERTEXT) &&
             !type.equals(FGRP_INTERTEXT_SHORT) &&
+            !type.equals(FGRP_RELATION) &&
             !type.equals(FGRP_TOPIC) &&
             !type.equals(FGRP_MINTZ_NOARGS)) {
           throw new IllegalArgumentException("unknown feaure type: " + type);

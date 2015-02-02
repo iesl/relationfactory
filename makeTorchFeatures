@@ -1,0 +1,37 @@
+d=/iesl/canvas/beroth/workspace/feature-matrix-factorization/runs/run20140507_features/
+outdir=./processedData
+
+for set in train dev test
+do
+	tmp=/tmp/$set.proc
+	out=$outdir/$set
+	lab=
+	lab=$d/`echo $set`_relation.feats
+	cut -f9 $lab | cut -d" " -f2- > $tmp.lab
+	echo $set $ext
+
+	for ext in intertext ngram
+	do
+		feat=$d/`echo $set`_$ext.feats
+        	cut -f9 $feat | cut -d" " -f2-  > $tmp.$ext
+		paste $tmp.lab $tmp.$ext > $out.$ext.libsvm.tmp
+	done
+
+	rm $tmp*	
+	
+done
+
+
+labelList=/tmp/labels
+
+cut -f1 $outdir/train.intertext | sort -u > $labelList
+num=`wc -l $labelList | cut -d" " -f1`
+seq 1 $num > $labelList.num
+paste $labelList $labelList.num > $outdir/labelMap.txt
+
+for f in $outdir/*libsvm.tmp
+do
+	perl mapLabels.perl $outdir/labelMap.txt  $f > $outdir/`basename $f .tmp`
+done
+
+

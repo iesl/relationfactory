@@ -2,8 +2,8 @@
 
 rundir=$TAC_ROOT/runs/run020815
 train_sentences=/iesl/canvas/beroth/tac/data/merge_2013.pb
-dev_sentences=/iesl/canvas/beroth/tac/data/candidates2009-2012.pb
-test_sentences=/iesl/canvas/beroth/tac/data/candidates_2013submission.pb
+dev_sentences=/iesl/canvas/beroth/tac/data/candidates_2013submission.pb
+test_sentences=$dev_sentences
 
 ln -s $train_sentences ./sentences.train
 ln -s $dev_sentences ./sentences.dev
@@ -17,7 +17,7 @@ normalize=false
 single_sentence_mode=false
 for ext in ngram_directed,skip_exact intertext intertext_short relation
 do
-for set in train dev test
+for set in train dev
 do
     sentences=./sentences.$set
 

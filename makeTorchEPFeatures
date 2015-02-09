@@ -4,7 +4,7 @@ ngram_ext=ngram_directed,skip_exact
 
 singleSentenceMode=true
 
-for set in train dev test
+for set in train dev
 do
 	for ext in $ngram_ext
 	do
@@ -27,7 +27,7 @@ seq 1 $num > $labelList.num
 paste $labelList $labelList.num > $d/labelMap.txt
 
 
-for set in train dev test
+for set in train dev
 do
         for ext in $ngram_ext
         do
@@ -35,7 +35,7 @@ do
                 feat=$d/$set.$ext.ss-$singleSentenceMode.feats
 
 		cut -f2,9 $feat.EP > $feat.mi.str
-		perl mapLabels.perl $d/labelMap.txt  $feat.mi.str > $feat.mi
+		perl mapLabels.perl $d/labelMap.txt  $feat.mi.str | perl -pne  's|^(\S+ )\+1 |$1|'  > $feat.mi
 		cut -f1-8 $feat > $feat.lhs
         done
 done

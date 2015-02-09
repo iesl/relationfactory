@@ -250,7 +250,7 @@ public class Features {
       fgrpInst = sfe.addOutsideNgram(fgrpInst, matchingSentences, relation, 3, 3, true);
       
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -267,7 +267,7 @@ public class Features {
       fgrpInst = sfe.addOutsideNgram(fgrpInst, matchingSentences, relation, 4, 3, true);
 
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -290,7 +290,7 @@ public class Features {
       fgrpInst = sfe.addOutsideBrownNgram(fgrpInst, matchingSentences, relation, classMap, 3, 20, 3, true);
 
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -324,7 +324,7 @@ public class Features {
       fgrpInst = sfe.addOutsideBrownNgram(fgrpInst, matchingSentences, relation, classMap, 3, 10, 3, true);
 
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -342,7 +342,7 @@ public class Features {
       fgrpInst = sfe.addOutsideBrownNgram(fgrpInst, matchingSentences, relation, classMap, 4, 20, 3, true);
 
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize)      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -364,7 +364,7 @@ public class Features {
       fgrpInst = sfe.addOutsideBrownNgram(fgrpInst, matchingSentences, relation, classMap, 4, 10, 3, true);
 
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize)      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -421,7 +421,7 @@ public class Features {
       fgrpInst = sfe.addSlotLogCharacterCount(fgrpInst, matchingSentences, relation);
 
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize)      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -444,7 +444,7 @@ public class Features {
       //fgrpInst = sfe.addOutsideSkipFuzzy(fgrpInst, matchingSentences, relation, 4, 4);
       
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -461,7 +461,7 @@ public class Features {
       fgrpInst = sfe.addIntertext(fgrpInst, matchingSentences, relation);
 
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -478,7 +478,7 @@ public class Features {
       fgrpInst = sfe.addIntertextShort(fgrpInst, matchingSentences, relation);
 
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
 
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -516,7 +516,7 @@ public class Features {
       //fgrpInst = sfe.addOutsideSkipExact(fgrpInst, matchingSentences, relation, 4, 4, true);
       
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -531,7 +531,7 @@ public class Features {
       Instance.Builder fgrpInst = Instance.newBuilder();
       fgrpInst = sfe.addTopics(fgrpInst, matchingSentences);    
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -549,7 +549,7 @@ public class Features {
       fgrpInst = sfe.addMintzNoArgsLexical(fgrpInst, matchingSentences, relation, 2);
       fgrpInst = sfe.addMintzNoArgsSyntactic(fgrpInst, matchingSentences, relation);
       fgrpInst = sfe.sortAndSumFeatures(fgrpInst);
-      fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
+      if (normalize) fgrpInst = sfe.normalizeFeaturesToMax(fgrpInst);
       
       inst = sfe.mergeFeatures(inst, fgrpInst.build());
       if (firstMethodInvocationInstance) {
@@ -600,7 +600,7 @@ public class Features {
     }
     logger.debug("Feature types: " + featuretypes);
     boolean normalize = args[7].equals("true");
-    
+    System.out.println("normalizing feature scales: " + normalize);
     Map<String, String> vocabMap = null;
     vocabMap = new HashMap<String, String>();
     BufferedReader br = new BufferedReader(new FileReader(classesFn));

@@ -6,17 +6,12 @@ singleSentenceMode=true
 
 for set in train dev test
 do
-	out=$outdir/$set
-	lab=$d/$set.relation.ss-$singleSentenceMode.feats
-	cut -f9 $lab | cut -d" " -f2- > $lab.EP
-
 	for ext in $ngram_ext
 	do
 
 		feat=$d/$set.$ext.ss-$singleSentenceMode.feats
-		echo $feat
+		echo aggregating $feat
 		perl aggregateByEP.pl $feat > $feat.EP
-		paste $lab.EP $feat.EP > $feat.libsvm.tmp
 	done
 done
 
@@ -31,9 +26,19 @@ num=`wc -l $labelList | cut -d" " -f1`
 seq 1 $num > $labelList.num
 paste $labelList $labelList.num > $d/labelMap.txt
 
-for f in $d/*libsvm.tmp
+
+for set in train dev test
 do
-	perl mapLabels.perl $d/labelMap.txt  $f > $d/`basename $f .tmp`
+        for ext in $ngram_ext
+        do
+
+                feat=$d/$set.$ext.ss-$singleSentenceMode.feats
+
+		cut -f2,9 $feat.EP > $feat.mi.str
+		perl mapLabels.perl $d/labelMap.txt  $feat.mi.str > $feat.mi
+		cut -f1-8 $feat > $feat.lhs
+        done
 done
+
 
 

@@ -14,14 +14,14 @@ mkdir -p $rundir
 
 brown_classes=false
 normalize=false
-merge=false
+single_sentence_mode=false
 for ext in ngram_directed,skip_exact intertext intertext_short relation
 do
 for set in train dev test
 do
     sentences=./sentences.$set
 
-    $TAC_ROOT/components/bin/run.sh run.Features $rundir/fmap /dev/null $merge true $sentences $rundir/$set.$ext.feats $ext $normalize
+    $TAC_ROOT/components/bin/run.sh run.Features $rundir/fmap /dev/null $single_sentence_mode true $sentences $rundir/$set.$ext.ss-$single_sentence_mode.feats $ext $normalize
 done
 done
 

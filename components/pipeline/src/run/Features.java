@@ -610,7 +610,7 @@ public class Features {
     }
     vocabMap.remove(SentenceFeatureExtractor.UNKNOWN_TOKEN);
     br.close();
-    
+    System.out.println("single sentence mode = " + singleSentenceMode);
     SentenceFeatureExtractor sfe;
     // Sfe reads creates new feature map or reads in existing one.
     if (featureMapFile.exists()) {

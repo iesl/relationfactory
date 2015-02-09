@@ -1,0 +1,5 @@
+#!/bin/bash
+pred=$1
+#example_predictions=/iesl/canvas/beroth/tac/runs/run20140314/response_fast_pp13
+
+/iesl/canvas/beroth/tac/relationfactory/evaluation/bin/score2013.sh  $1 /iesl/canvas/beroth/tac/evaluation/eval2013/key_2013 

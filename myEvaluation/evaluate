@@ -1,0 +1,25 @@
+predictionFile=$1
+exampleDir=$2
+outReport=$3
+tmpdir=`mktemp -d`
+##warning: the outReport must be a absolute path
+mkdir -p $tmpdir/out/run2013
+
+for f in $exampleDir/run2013/* 
+do
+ln -s $f $tmpdir/out/run2013
+done
+rm $tmpdir/out/run2013/makefile
+rm $tmpdir/out/run2013/log4j.txt
+ln -s $predictionFile $tmpdir/out/run2013/predictions_classifier_david
+cd $tmpdir
+source /iesl/canvas/belanger/relationfactory/myEvaluation/setupPaths  $PWD/out/
+
+
+/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013.config
+
+sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_fast_david_pp13 | tee $outReport
+
+
+rm -rf $tmpdir
+

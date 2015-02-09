@@ -11,12 +11,15 @@ while(<I>){
     my @fields = split("\t");
     my $name = join("::",@fields[(0,1,2)]);
     my $feats = $fields[8];
-    $feats=~s/^\+1//;
-    if($lc == 0){
-	$prototype = join(@fields[(0 .. 8)]);
-    }
+    $feats=~s/^\+1 //;
+
     unless($name eq $pE){
-	print $prototype." ".join("&&&",@curFeats)."&&&\n";
+	if($lc == 0){
+	    $prototype = join(@fields[(0 .. 8)]);
+	}else{
+	    print $prototype." ".join("&&&",@curFeats)."&&&\n";
+	}
+
 	@curFeats = ();
 
 
@@ -26,4 +29,4 @@ while(<I>){
     push(@curFeats,$feats);
     $lc++;
 }
-print $prototype." ".join(":::",@curFeats)."\n";
+print $prototype." ".join("&&&",@curFeats)."&&&\n";

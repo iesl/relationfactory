@@ -1,0 +1,39 @@
+d=runs/run020815/
+outdir=./processedData
+ngram_ext=ngram_directed,skip_exact
+
+singleSentenceMode=true
+
+for set in train dev test
+do
+	out=$outdir/$set
+	lab=$d/$set.relation.ss-$singleSentenceMode.feats
+	cut -f9 $lab | cut -d" " -f2- > $lab.EP
+
+	for ext in $ngram_ext
+	do
+
+		feat=$d/$set.$ext.ss-$singleSentenceMode.feats
+		echo $feat
+		perl aggregateByEP.pl $feat > $feat.EP
+		paste $lab.EP $feat.EP > $feat.libsvm.tmp
+	done
+done
+
+
+labelList=/tmp/labels
+
+set=train
+ext=$ngram_ext
+
+cut -f2 $d/$set.$ext.ss-$singleSentenceMode.feats | sort -u > $labelList
+num=`wc -l $labelList | cut -d" " -f1`
+seq 1 $num > $labelList.num
+paste $labelList $labelList.num > $d/labelMap.txt
+
+for f in $d/*libsvm.tmp
+do
+	perl mapLabels.perl $d/labelMap.txt  $f > $d/`basename $f .tmp`
+done
+
+

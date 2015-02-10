@@ -1,7 +1,9 @@
 predictionFile=$1
-outReport=$2
+thresh=$2
+outReport=$3
+
 lhsFile=runs/run020815/dev.ngram_directed,skip_exact.ss-true.feats.lhs
 exampleDir=/iesl/canvas/beroth/tac/runs/run20140314/
 
-sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateScores $predictionFile $lhsFile $exampleDir $outReport
+sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateScores $predictionFile $lhsFile $exampleDir $thresh $outReport
 

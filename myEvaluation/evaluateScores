@@ -1,10 +1,12 @@
 predictionFile=$1
 lhsFile=$2
 exampleDir=$3
-outReport=$4
+thresh=$4
+outReport=$5
 
 tmpPrediction=`mktemp`
-paste  $lhsFile $predictionFile > $tmpPrediction
+paste  $lhsFile $predictionFile > $tmpPrediction.1
+perl /iesl/canvas/belanger/relationfactory/myEvaluation/filterByThresh.pl $tmpPrediction.1 $thresh> $tmpPrediction
 
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 

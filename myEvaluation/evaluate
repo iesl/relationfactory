@@ -16,16 +16,18 @@ cd $tmpdir
 source /iesl/canvas/belanger/relationfactory/myEvaluation/setupPaths  $PWD/out/
 
 
-/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_isolated.config
+
 /iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_all.config
 
-echo ISOLATED PERFORMANCE
-sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_fast_david_pp13 | tee $outReport
+#echo ISOLATED PERFORMANCE
+#/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_isolated.config
+#sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_fast_david_pp13 | tee $outReport
 
 echo 
 echo COMBINATION PERFORMANCE
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_classifier_david_pp13 | tee -a $outReport
 
+cat $outReport
 
 rm -rf $tmpdir
 

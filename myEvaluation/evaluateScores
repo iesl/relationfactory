@@ -1,10 +1,10 @@
 predictionFile=$1
 lhsFile=$2
-exampleDir=$2
-outReport=$3
+exampleDir=$3
+outReport=$4
 
 tmpPrediction=`mktemp`
-paste -d" " $lhsFile $predictionFile > $tmpPrediction
+paste  $lhsFile $predictionFile > $tmpPrediction
 
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 

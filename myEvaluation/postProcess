@@ -1,0 +1,3 @@
+source setupPaths
+/iesl/canvas/beroth/tac/relationfactory/bin/run.sh system2013.config
+./evaluateOutput out/run2013/response_fast_david_pp13

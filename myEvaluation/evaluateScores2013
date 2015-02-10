@@ -1,0 +1,8 @@
+predictionFile=$1
+outReport=$2
+lhsFile=runs/run020815/dev.ngram_directed,skip_exact.ss-true.feats.lhs
+exampleDir=/iesl/canvas/luke/tacEvaluation/out/
+
+
+sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateScores $predictionFile $lhsFile $exampleDir $outReport
+

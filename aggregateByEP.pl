@@ -4,8 +4,10 @@ open(I,$ARGV[0])||die;
 
 my $pE = "";
 my @curFeats = ();
-my $prototype = "";
+
 my $lc = 0;
+my %prototypes = {};
+my %examples = {};
 while(<I>){
     chomp;
     my @fields = split("\t");
@@ -13,20 +15,31 @@ while(<I>){
     my $feats = $fields[8];
     $feats=~s/^\+1 //;
 
-    unless($name eq $pE){
-	if($lc == 0){
-	    $prototype = join(@fields[(0 .. 8)]);
-	}else{
-	    print $prototype." ".join("&&&",@curFeats)."&&&\n";
-	}
-
-	@curFeats = ();
-
-
-	$pE = $name;
-	$prototype = join("\t",@fields[(0 .. 8)]); #this takes the provenance information for the first mention
+    unless(exists $prototypes{$name}){
+	my $prototype = join("\t",@fields[(0 .. 7)]);
+	$prototypes{$name} = $prototype;
     }
-    push(@curFeats,$feats);
-    $lc++;
+
+    unless(exists $examples{$name}){
+	$examples{$name} = [];
+    }
+
+    push(@{$examples{$name}},$feats);
 }
-print $prototype." ".join("&&&",@curFeats)."&&&\n";
+close(I);
+
+my $name;
+my @names = keys %prototypes;
+foreach $name (@names){
+    die unless(exists $prototypes{$name});
+  #  die "$name\n" unless
+    if(exists $examples{$name}){
+	my $prototype = $prototypes{$name};
+	my @curFeats = @{$examples{$name}};
+	print $prototype." ".join("&&&",@curFeats)."&&&\n";
+    }else{
+	warn "failed: $name\n";
+    }
+
+}
+

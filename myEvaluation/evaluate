@@ -1,11 +1,12 @@
+
 predictionFile=$1
 exampleDir=$2
 outReport=$3
 tmpdir=`mktemp -d`
 ##warning: the outReport must be a absolute path
 mkdir -p $tmpdir/out/run2013
-
-for f in $exampleDir/run2013/* 
+echo computing performance for $predictionFile
+for f in $exampleDir/* 
 do
 ln -s $f $tmpdir/out/run2013
 done
@@ -17,17 +18,18 @@ source /iesl/canvas/belanger/relationfactory/myEvaluation/setupPaths  $PWD/out/
 
 
 
-/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_all.config
 
-#echo ISOLATED PERFORMANCE
-#/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_isolated.config
-#sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_fast_david_pp13 | tee $outReport
+
+echo ISOLATED PERFORMANCE
+/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_isolated.config
+sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_fast_david_pp13 | tee $outReport
 
 echo 
 echo COMBINATION PERFORMANCE
+/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_all.config
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_classifier_david_pp13 | tee -a $outReport
 
-cat $outReport
+
 
 rm -rf $tmpdir
 

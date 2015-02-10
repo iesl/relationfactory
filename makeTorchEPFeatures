@@ -6,7 +6,7 @@ singleSentenceMode=true
 
 for set in train dev
 do
-	for ext in $ngram_ext
+	for ext in $ngram_ext intertext intertext_short
 	do
 
 		feat=$d/$set.$ext.ss-$singleSentenceMode.feats
@@ -29,7 +29,7 @@ paste $labelList $labelList.num > $d/labelMap.txt
 
 for set in train dev
 do
-        for ext in $ngram_ext
+        for ext in $ngram_ext intertext intertext_short
         do
 
                 feat=$d/$set.$ext.ss-$singleSentenceMode.feats

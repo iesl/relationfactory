@@ -1,31 +1,34 @@
+use strict;
+my $ff;
 while(<>){
     chomp;
     my @fields = split("\t");
     my $label = $fields[0];
     my @feats = split("&&&",$fields[1]);
-    pop @feats;
+#    pop @feats;
     my %h;
     my $f;
     foreach $ff (@feats){
 	my $f = $ff;
-	my $f =~ s/:.*//;
-	print "f = $f\n";
-	unless(exits $h[$f]){
-	    $h[$f] = 0
+	$f=~s/:.*/$1/;
+
+	unless(exists $h{$f}){
+	    $h{$f} = 0;
 	}
-	$h[$f]++;
-	print $f."\n";
+	$h{$f}++;
     }
-    print %h;
 
 
     if(scalar(keys %h) > 0){
-    print $label."\t";
+
     my $k;
+    print "$label\t";
     foreach  $k (keys %h){
-	my $count = $h[$k];
+	my $count = $h{$k};
 	print "$k:$count&&&";
     }
     print "\n";
+    }else{
+	print "$label\t&&&\n";
     }
 }

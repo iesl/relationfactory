@@ -41,4 +41,13 @@ do
 done
 
 
+for set in train dev
+do
+        for ext in  intertext intertext_short
+        do
+
+                feat=$d/$set.$ext.ss-$singleSentenceMode.feats
+		perl CollapseFeatureCounts.pl $feat.mi > $feat.mi.collapse
+        done
+done
 

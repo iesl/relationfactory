@@ -10,7 +10,7 @@ close(I);
 
 open(I,$ARGV[1])||die;
 while(<I>){
-    s/(\S+)\s(.*)/$labelMap{$1} $2/;
+    s/(\S+)\s(.*)/$labelMap{$1}\t$2/;
     print;
 
 }

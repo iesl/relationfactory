@@ -1,0 +1,28 @@
+trainfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
+devfile=/iesl/canvas/beroth/tac/runs/run20140314/candidates
+vocabThresh=25
+
+tb=`basename $trainfile`
+db=`basename $devfile`
+
+
+out=convData
+ot=$out/$tb
+od=$out/$db
+
+
+#format: <relname>\t<l/r>\t<string>
+#here, l/r=1 if arg1 comes first and 0 if they are swapped
+perl sliceArgString.pl <  $trainfile > $ot.argstring
+perl sliceArgString.pl <  $devfile > $od.argstring
+
+cut -f3 $ot.argstring | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*||' | perl -ne '$o = $_; /(\d*)/;  if($1 > 25){print $o;}'> $out/vocab.counts.txt
+cut -d" " -f2 $out/vocab.counts.txt > $out/vocab.txt
+
+cut -f1 $ot.argstring  | sort -u > $out/labelMap.txt 
+
+perl mapToInts.pl $ot.argstring  $out/vocab.txt $out/labelMap.txt > $ot.argInt
+perl mapToInts.pl $od.argstring $out/vocab.txt $out/labelMap.txt  > $od.argInt
+
+
+

@@ -1,35 +1,41 @@
-d=runs/run20140507_features/
-outdir=./processedData
+set -e
+d=runs/run030415c/
 
-for set in train dev test
+ngram_ext=ngram_directed,skip_exact
+
+for singleSentenceMode in true false
+do
+for set in train dev
 do
 	tmp=/tmp/$set.proc
-	out=$outdir/$set
-	lab=
-	lab=$d/`echo $set`_relation.feats
+	lab=$d/$set.relation.ss-$singleSentenceMode.feats
 	cut -f9 $lab | cut -d" " -f2- > $tmp.lab
-	echo $set $ext
-
-	for ext in intertext ngram intertext_short
+	echo tmp.lab `wc -l $tmp.lab`
+	for ext in $ngram_ext
 	do
-		feat=$d/`echo $set`_$ext.feats
-        	cut -f9 $feat | cut -d" " -f2-  > $tmp.$ext
-		paste $tmp.lab $tmp.$ext > $out.$ext.libsvm.tmp
+		echo $set $ext
+		feat=$d/$set.$ext.ss-$singleSentenceMode.feats
+		echo feat `wc -l $feat`
+		cut -f1-8 $feat > $feat.lhs
+		echo lhs `wc -l $feat.lhs`
+        	cut -f9 $feat | sed 's|^\+1 ||'  > $tmp.$ext
+		paste $tmp.lab $tmp.$ext > $feat.libsvm.tmp
+		echo tmp `wc -l $feat.libsvm.tmp `
 	done
 	rm $tmp*	
 done
-
+done
 
 labelList=/tmp/labels
 
-cut -f1 $outdir/train.intertext.libsvm.tmp | sort -u > $labelList
+cut -f1 $d/train.$ngram_ext.ss-false.feats.libsvm.tmp | sort -u > $labelList
 num=`wc -l $labelList | cut -d" " -f1`
 seq 1 $num > $labelList.num
-paste $labelList $labelList.num > $outdir/labelMap.txt
-
-for f in $outdir/*libsvm.tmp
+paste $labelList $labelList.num > $d/labelMap.txt
+for f in $d/*libsvm.tmp
 do
-	perl mapLabels.perl $outdir/labelMap.txt  $f > $outdir/`basename $f .tmp`
+	perl mapLabels.perl $d/labelMap.txt  $f > $d/`basename $f .tmp`
 done
 
-
+trainfile_full=$d/train.$ngram_ext.ss-false.feats.libsvm.tmp 
+shuf $trainfile_full > $trainfile_full.shuffle

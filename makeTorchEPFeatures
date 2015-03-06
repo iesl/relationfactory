@@ -11,7 +11,8 @@ do
 
 		feat=$d/$set.$ext.ss-$singleSentenceMode.feats
 		echo aggregating $feat
-		perl aggregateByEP.pl $feat > $feat.EP
+		perl aggregateByEP.pl $feat | grep -v -e '\s&&&$' > $feat.EP
+#		perl aggregateByEP.pl $feat | grep -v -e '\s&&&$' | sed 's|per:employee_of|per:employee_or_member_of|' | sed 's|per:member_of|per:employee_or_member_of|'  > $feat.EP
 	done
 done
 
@@ -34,10 +35,20 @@ do
 
                 feat=$d/$set.$ext.ss-$singleSentenceMode.feats
 
-		cut -f2,9 $feat.EP > $feat.mi.str
+		cut -f2,9 $feat.EP  > $feat.mi.str
 		perl mapLabels.perl $d/labelMap.txt  $feat.mi.str | perl -pne  's|^(\S+ )\+1 |$1|'  > $feat.mi
 		cut -f1-8 $feat > $feat.lhs
         done
+done
+
+ext=$ngram_ext
+for set in train dev
+do
+	feat=$d/$set.$ext.ss-$singleSentenceMode.feats
+	cp $feat.mi $feat.mi.collapse
+	cp $feat.EP $feat.EP.collapse
+        cut -f1-8 $feat.EP.collapse > $feat.EP.collapse.lhs
+
 done
 
 
@@ -45,9 +56,9 @@ for set in train dev
 do
         for ext in  intertext intertext_short
         do
-
                 feat=$d/$set.$ext.ss-$singleSentenceMode.feats
-		perl CollapseFeatureCounts.pl $feat.mi > $feat.mi.collapse
+		perl CollapseFeatureCounts.pl $feat.mi $feat.EP  $feat.mi.collapse $feat.EP.collapse
+		cut -f1-8 $feat.EP.collapse > $feat.EP.collapse.lhs
         done
 done
 

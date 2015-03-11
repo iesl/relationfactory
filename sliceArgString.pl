@@ -1,5 +1,6 @@
 use strict;
 while(<>){
+    my $o = $_;
     chomp;
     my @fields = split("\t");
     my @toks = split(" ",$fields[8]);
@@ -28,7 +29,10 @@ while(<>){
 #    print("$rel $arg1 $arg2 ".join(' ',@toks[$gap_start..$gap_end])."\n");
     my @mappedToks = map{normalize($_)} @toks[$gap_start..$gap_end];
     my $str = join(' ',@mappedToks);
-    print("$rel\t$lr\t$str\n");
+    unless($gap_start > $gap_end){
+	    print("$rel\t$lr\t$str\n");
+    }#else... is it safe to assume that all the ones with 0 intervening text are 'alternate names'
+
 
 }
 

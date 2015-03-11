@@ -5,24 +5,55 @@ vocabThresh=25
 tb=`basename $trainfile`
 db=`basename $devfile`
 
-
-out=convData
+out=$PWD/convData
 ot=$out/$tb
 od=$out/$db
 
+shuf $trainfile > $ot.shuff
+shuf $devfile > $od.shuff
 
 #format: <relname>\t<l/r>\t<string>
 #here, l/r=1 if arg1 comes first and 0 if they are swapped
-perl sliceArgString.pl <  $trainfile > $ot.argstring
-perl sliceArgString.pl <  $devfile > $od.argstring
+perl sliceArgString.pl <  $ot.shuff > $ot.argstring
+perl sliceArgString.pl <  $od.shuff > $od.argstring
 
 cut -f3 $ot.argstring | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*||' | perl -ne '$o = $_; /(\d*)/;  if($1 > 25){print $o;}'> $out/vocab.counts.txt
 cut -d" " -f2 $out/vocab.counts.txt > $out/vocab.txt
+echo "<unk>" >> $out/vocab.txt
 
-cut -f1 $ot.argstring  | sort -u > $out/labelMap.txt 
+cut -f1 $ot.argstring  | sort -u > $out/labelMap.txt.tmp
+
+cat $out/labelMap.txt.tmp  | sed 's|$|-reverse|' > $out/labelMap.txt.tmp.reverse
+cat $out/labelMap.txt.tmp $out/labelMap.txt.tmp.reverse > $out/labelMap.txt
 
 perl mapToInts.pl $ot.argstring  $out/vocab.txt $out/labelMap.txt > $ot.argInt
 perl mapToInts.pl $od.argstring $out/vocab.txt $out/labelMap.txt  > $od.argInt
 
+mkdir $out/trainSplit/
+mkdir $out/devSplit/
 
+perl splitByLength.pl $ot.argInt $ot.shuff $out/trainSplit/train.
+perl splitByLength.pl $od.argInt $od.shuff $out/devSplit/dev.
+
+for f in $out/{train,dev}Split/*.int.txt
+do 
+   outfile=`echo $f | sed 's|.txt$|.torch|'`
+   len=`basename $f .int.txt| sed 's|.*\.-||'`
+   wc -l $f
+echo    th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
+   th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
+echo
+done
+
+
+devList=$out/pairedDevFileList.txt
+rm -f $devList
+for f in $out/devSplit/dev.-{3,4,5,6,7,8}.string.txt
+do
+   outfile=`echo $f | sed 's|.txt$|.lhs|'`
+   torchfile=`echo $f | sed 's|string.txt$|int.torch|'`
+   
+   cat $f | cut -f1-8 > $outfile
+   echo $torchfile $outfile >> $devList
+done
 

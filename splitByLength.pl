@@ -1,17 +1,34 @@
 use strict;
 open(I,$ARGV[0])||die;
-my $outbase = $ARGV[1];
+open(IS,$ARGV[1])||die;
+
+my $outbase = $ARGV[2];
 my %handles;
-foreach $i ((1 .. 25)){
-    my $h = open(">$outbase/$i");
-    $handles{$i} = $h;
+my $i;
+my $max = 15;
+foreach $i ((1 .. $max)){
+    local *FILE;
+    open(*FILE,">$outbase-$i.int.txt") || die;
+    $handles{$i} = *FILE;
+}
+
+my %handles2;
+foreach $i ((1 .. $max)){
+    local *FILE;
+    open(*FILE,">$outbase-$i.string.txt") || die;
+    $handles2{$i} = *FILE;
 }
 
 while(<I>){
     my $o = $_;
     chomp;
+    my $sline = <IS>;
     my @fields = split("\t");
-    my $len = split(" ",$fields[2]);
-    my $of = $handles{$len};
-    print $of $o;
+    my $len = split(" ",$fields[1]);
+    if($len <= $max){
+	my $of = $handles{$len};
+	my $of2 = $handles2{$len};
+	print $of $o;
+	print $of2 $sline;
+    }
 }

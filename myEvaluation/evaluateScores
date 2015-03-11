@@ -1,3 +1,4 @@
+set -v 
 predictionFile=$1
 lhsFile=$2
 exampleDir=$3
@@ -10,5 +11,6 @@ perl /iesl/canvas/belanger/relationfactory/myEvaluation/filterByThresh.pl $tmpPr
 
 echo $tmpPrediction
 
+echo sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 

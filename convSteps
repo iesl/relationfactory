@@ -1,3 +1,4 @@
+set -e 
 trainfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
 devfile=/iesl/canvas/beroth/tac/runs/run20140314/candidates
 vocabThresh=25
@@ -7,17 +8,25 @@ db=`basename $devfile`
 
 out=$PWD/convData
 ot=$out/$tb
+otc=$out/$tb.cross
 od=$out/$db
 
 shuf $trainfile > $ot.shuff
 shuf $devfile > $od.shuff
 
+crossLen=`wc -l $ot.shuff | cut -d" " -f1 | xargs -ifoo expr foo / 6`
+
+tail -n $crossLen $ot.shuff > $otc.shuff
+
 #format: <relname>\t<l/r>\t<string>
 #here, l/r=1 if arg1 comes first and 0 if they are swapped
-perl sliceArgString.pl <  $ot.shuff > $ot.argstring
-perl sliceArgString.pl <  $od.shuff > $od.argstring
+for f in $ot $otc $od
+do
+	perl sliceArgStringAppend.pl $f.shuff relTypes.txt > $f.argstring
+done
 
-cut -f3 $ot.argstring | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*||' | perl -ne '$o = $_; /(\d*)/;  if($1 > 25){print $o;}'> $out/vocab.counts.txt
+
+cut -f3 $ot.argstring | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*||' | perl -ne '$o = $_; /(\d*)/;  if($1 > 10){print $o;}'> $out/vocab.counts.txt
 cut -d" " -f2 $out/vocab.counts.txt > $out/vocab.txt
 echo "<unk>" >> $out/vocab.txt
 
@@ -26,34 +35,43 @@ cut -f1 $ot.argstring  | sort -u > $out/labelMap.txt.tmp
 cat $out/labelMap.txt.tmp  | sed 's|$|-reverse|' > $out/labelMap.txt.tmp.reverse
 cat $out/labelMap.txt.tmp $out/labelMap.txt.tmp.reverse > $out/labelMap.txt
 
-perl mapToInts.pl $ot.argstring  $out/vocab.txt $out/labelMap.txt > $ot.argInt
-perl mapToInts.pl $od.argstring $out/vocab.txt $out/labelMap.txt  > $od.argInt
+for f in $ot $otc $od
+do
+	perl mapToInts.pl $f.argstring  $out/vocab.txt $out/labelMap.txt > $f.argInt
+done
 
-mkdir $out/trainSplit/
-mkdir $out/devSplit/
+
+mkdir -p $out/trainSplit/
+mkdir -p $out/devSplit/
+mkdir -p $out/trainCrossSplit/
 
 perl splitByLength.pl $ot.argInt $ot.shuff $out/trainSplit/train.
+perl splitByLength.pl $otc.argInt $otc.shuff $out/trainCrossSplit/trainCross.
 perl splitByLength.pl $od.argInt $od.shuff $out/devSplit/dev.
 
-for f in $out/{train,dev}Split/*.int.txt
+for f in $out/{train,dev,trainCross}Split/*.int.txt
 do 
    outfile=`echo $f | sed 's|.txt$|.torch|'`
    len=`basename $f .int.txt| sed 's|.*\.-||'`
    wc -l $f
-echo    th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
+   echo    th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
    th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
-echo
 done
 
 
-devList=$out/pairedDevFileList.txt
-rm -f $devList
-for f in $out/devSplit/dev.-{3,4,5,6,7,8}.string.txt
+
+for name in dev trainCross
+do
+list=$out/paired.$name.FileList.txt
+rm -f $list
+for f in $out/${name}Split/$name.-{3,4,5,6,7,8,9,10,11}.string.txt
 do
    outfile=`echo $f | sed 's|.txt$|.lhs|'`
-   torchfile=`echo $f | sed 's|string.txt$|int.torch|'`
-   
+   torchfile=`echo $f | sed 's|string.txt$|int.torch|'`   
    cat $f | cut -f1-8 > $outfile
-   echo $torchfile $outfile >> $devList
+   echo $torchfile $outfile >> $list
+done
+
+
 done
 

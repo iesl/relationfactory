@@ -2,6 +2,7 @@ use strict;
 open(I,$ARGV[0])||die;
 open(V,$ARGV[1])||die;
 open(L,$ARGV[2])||die;
+my $flipLabel = $ARGV[3] == "0";
 
 my %vocab;
 my %vocab2;
@@ -31,7 +32,7 @@ while(<I>){
     chomp;
     my @fields = split("\t");
     my $queryLab = $fields[0];
-    if($fields[1] == 0){
+    if($fields[1] == 0 && $flipLabel){
 	$queryLab = $queryLab."-reverse";
     }
     die unless(exists $label{$queryLab});

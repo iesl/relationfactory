@@ -6,7 +6,8 @@ vocabThresh=25
 tb=`basename $trainfile`
 db=`basename $devfile`
 
-out=$PWD/convData
+out=$PWD/convDataFlip
+flip=1
 ot=$out/$tb
 otc=$out/$tb.cross
 od=$out/$db
@@ -22,7 +23,7 @@ tail -n $crossLen $ot.shuff > $otc.shuff
 #here, l/r=1 if arg1 comes first and 0 if they are swapped
 for f in $ot $otc $od
 do
-	perl sliceArgStringAppend.pl $f.shuff relTypes.txt > $f.argstring
+	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip > $f.argstring
 done
 
 
@@ -30,14 +31,14 @@ cut -f3 $ot.argstring | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*
 cut -d" " -f2 $out/vocab.counts.txt > $out/vocab.txt
 echo "<unk>" >> $out/vocab.txt
 
-cut -f1 $ot.argstring  | sort -u > $out/labelMap.txt.tmp
-
-cat $out/labelMap.txt.tmp  | sed 's|$|-reverse|' > $out/labelMap.txt.tmp.reverse
-cat $out/labelMap.txt.tmp $out/labelMap.txt.tmp.reverse > $out/labelMap.txt
+cut -f1 $ot.argstring  | sort -u > $out/labelMap.txt
+if [ "$flip" == 0 ]; then
+   cat $out/labelMap.txt.tmp  | sed 's|$|-reverse|' >> $out/labelMap.txt
+fi
 
 for f in $ot $otc $od
 do
-	perl mapToInts.pl $f.argstring  $out/vocab.txt $out/labelMap.txt > $f.argInt
+	perl mapToInts.pl $f.argstring  $out/vocab.txt $out/labelMap.txt $flip > $f.argInt
 done
 
 

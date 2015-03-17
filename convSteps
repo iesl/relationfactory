@@ -6,8 +6,12 @@ vocabThresh=25
 tb=`basename $trainfile`
 db=`basename $devfile`
 
-out=$PWD/convData
+out=$PWD/convDataFlip
 flip=0
+useTypes=0
+out=$PWD/convDataFlip_flip${flip}_types${useTypes}
+echo working in $out
+mkdir -p $out
 ot=$out/$tb
 otc=$out/$tb.cross
 od=$out/$db
@@ -23,7 +27,7 @@ tail -n $crossLen $ot.shuff > $otc.shuff
 #here, l/r=1 if arg1 comes first and 0 if they are swapped
 for f in $ot $otc $od
 do
-	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip > $f.argstring
+	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes > $f.argstring
 done
 
 

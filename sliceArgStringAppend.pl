@@ -2,6 +2,7 @@ use strict;
 open(I,$ARGV[0])||die;
 open(M,$ARGV[1])||die;
 my $flip = $ARGV[2];
+my $useTypes = ($ARGV[3] == 1);
 
 my %entT = {};
 my %slotT = {};
@@ -53,6 +54,11 @@ while(<I>){
 	    $leftArgStr = $slotType;
 	    $rightArgStr = $entType;
 	}
+    }
+
+    unless(useTypes){
+	$leftArgStr = "START";
+	$rightArgStr = "END";
     }
     
 

@@ -6,7 +6,7 @@ headNum=$4
 outReport=$5
 
 
-
+headNum=`echo $headNum | sed 's|\..*||'`
 tmpPrediction=`mktemp`
 paste  $lhsFile $predictionFile > $tmpPrediction.1
 

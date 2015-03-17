@@ -1,4 +1,3 @@
-set -e
 predictionFile=$1
 exampleDir=$2
 outReport=$3

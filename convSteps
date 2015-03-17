@@ -6,8 +6,8 @@ vocabThresh=25
 tb=`basename $trainfile`
 db=`basename $devfile`
 
-out=$PWD/convDataFlip
-flip=1
+out=$PWD/convData
+flip=0
 ot=$out/$tb
 otc=$out/$tb.cross
 od=$out/$db

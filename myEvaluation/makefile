@@ -137,7 +137,7 @@ response2012: response_all_pp12
 
 # Template for postprocessing responses for 2013 format
 %_pp13: % query_expanded.xml /dev/null
-	$(TAC_ROOT)/components/bin/postprocess2013.sh $+ $@
+	$(TAC_ROOT)/components/bin/postprocess2013_nolinkstat.sh $+ $@
 
 # Postprocess response for 2012 format
 %_pp12: % query_expanded.xml

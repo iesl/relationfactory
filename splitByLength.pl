@@ -5,7 +5,7 @@ open(IS,$ARGV[1])||die;
 my $outbase = $ARGV[2];
 my %handles;
 my $i;
-my $max = 15;
+my $max = 18;
 foreach $i ((1 .. $max)){
     local *FILE;
     open(*FILE,">$outbase-$i.int.txt") || die;
@@ -26,6 +26,7 @@ while(<I>){
     my @fields = split("\t");
     my $len = split(" ",$fields[1]);
     if($len <= $max){
+	die "$len $max" unless(exists $handles{$len});
 	my $of = $handles{$len};
 	my $of2 = $handles2{$len};
 	print $of $o;

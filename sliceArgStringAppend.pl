@@ -3,6 +3,9 @@ open(I,$ARGV[0])||die;
 open(M,$ARGV[1])||die;
 my $flip = $ARGV[2];
 my $useTypes = ($ARGV[3] == 1);
+my $outsideWidth = $ARGV[4];
+my $min_width = 2 + 2*$outsideWidth+2;
+
 
 my %entT = {};
 my %slotT = {};
@@ -56,18 +59,49 @@ while(<I>){
 	}
     }
 
-    unless(useTypes){
-	$leftArgStr = "START";
-	$rightArgStr = "END";
+    unless($useTypes){
+	$leftArgStr = "<ARG_START>";
+	$rightArgStr = "<ARG_END>";
     }
     
 
+    
+
     my @mappedToks = map{normalize($_,$flipIt)} @toks[$gap_start..$gap_end];
+    
     unshift(@mappedToks,$leftArgStr);
     push(@mappedToks,$rightArgStr);
-    if(scalar(@mappedToks) < 3){
-	push(@mappedToks,'<END>');
+
+    if($outsideWidth > 0){
+	foreach my $offset ((1..$outsideWidth)){
+	    my $idx = $gap_start - $offset;
+	    if($idx >=0){
+		unshift(@mappedToks,$toks[$idx]);
+	    }else{
+		unshift(@mappedToks,'<PAD>');
+	    }
+
+	}
+	my $len = scalar(@toks);
+	foreach my $offset ((1..$outsideWidth)){
+	    my $idx = $gap_end + $offset;
+	    if($idx <=$len){
+		push(@mappedToks,$toks[$idx]);
+	    }else{
+		push(@mappedToks,'<PAD>');
+	    }
+
+	}
+
     }
+
+    
+    while(scalar(@mappedToks) < $min_width){
+	push(@mappedToks,'<PAD>');
+	unshift(@mappedToks,'<PAD>');
+    }
+
+    die unless(scalar(@mappedToks) >= $min_width);
 
     my $str = join(' ',@mappedToks);
     #unless($gap_start > $gap_end){

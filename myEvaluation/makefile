@@ -102,6 +102,9 @@ response_fast: query_expanded.xml response_alternate_names response_classifier r
 response_fast_david: query_expanded.xml response_alternate_names response_classifier response_classifier_david response_induced_patterns response_patterns
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
+# modules that run fast (1)
+response_fast_david_nosvm: query_expanded.xml response_alternate_names response_classifier_david response_induced_patterns response_patterns
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
 
 # Modules that have precision >~40% (2)

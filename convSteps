@@ -6,28 +6,35 @@ vocabThresh=25
 tb=`basename $trainfile`
 db=`basename $devfile`
 
-out=$PWD/convDataFlip
+out=$PWD/convData
 flip=0
-useTypes=0
-out=$PWD/convDataFlip_flip${flip}_types${useTypes}
+useTypes=1
+outsideWidth=2
+out=$PWD/convDataFlip_flip${flip}_types${useTypes}_outside_${outsideWidth}
 echo working in $out
 mkdir -p $out
 ot=$out/$tb
 otc=$out/$tb.cross
 od=$out/$db
 
-shuf $trainfile > $ot.shuff
+shuf $trainfile > $ot.shuff.tmp
 shuf $devfile > $od.shuff
 
-crossLen=`wc -l $ot.shuff | cut -d" " -f1 | xargs -ifoo expr foo / 6`
+crossLen=`wc -l $ot.shuff.tmp | cut -d" " -f1 | xargs -ifoo expr foo / 7`
 
-tail -n $crossLen $ot.shuff > $otc.shuff
+
+tail -n $crossLen $ot.shuff.tmp > $otc.shuff
+
+len=`wc -l $ot.shuff.tmp | cut -d" " -f1`
+echo expr $len - $crossLen
+trainLen=`expr $len - $crossLen`
+head -n $trainLen $ot.shuff.tmp > $ot.shuff
 
 #format: <relname>\t<l/r>\t<string>
 #here, l/r=1 if arg1 comes first and 0 if they are swapped
 for f in $ot $otc $od
 do
-	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes > $f.argstring
+	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth > $f.argstring
 done
 
 
@@ -35,9 +42,13 @@ cut -f3 $ot.argstring | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*
 cut -d" " -f2 $out/vocab.counts.txt > $out/vocab.txt
 echo "<unk>" >> $out/vocab.txt
 
-cut -f1 $ot.argstring  | sort -u > $out/labelMap.txt
+cut -f1 $ot.argstring  | sort -u > $out/labelMap.txt.tmp
+
 if [ "$flip" == 0 ]; then
+   cp $out/labelMap.txt.tmp $out/labelMap.txt
    cat $out/labelMap.txt.tmp  | sed 's|$|-reverse|' >> $out/labelMap.txt
+else
+	cp $out/labelMap.txt.tmp $out/labelMap.txt
 fi
 
 for f in $ot $otc $od
@@ -65,18 +76,28 @@ done
 
 
 
+start=`expr 4 + $outsideWidth + $outsideWidth`
+end=`expr $start + 7`
+
 for name in dev trainCross
 do
 list=$out/paired.$name.FileList.txt
 rm -f $list
-for f in $out/${name}Split/$name.-{3,4,5,6,7,8,9,10,11}.string.txt
-do
+for ii in `seq $start $end`
+do 
+f=$out/${name}Split/$name.-$ii.string.txt
    outfile=`echo $f | sed 's|.txt$|.lhs|'`
    torchfile=`echo $f | sed 's|string.txt$|int.torch|'`   
    cat $f | cut -f1-8 > $outfile
    echo $torchfile $outfile >> $list
 done
+done
 
+list=$out/trainFileList.txt
+rm -f $list
 
+for i in `seq $start $end`
+do
+	echo $out/trainSplit/train.-$i.int.torch >> $list
 done
 

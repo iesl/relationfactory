@@ -8,8 +8,8 @@ db=`basename $devfile`
 
 out=$PWD/convData
 flip=0
-useTypes=1
-outsideWidth=2
+useTypes=0
+outsideWidth=3
 out=$PWD/convDataFlip_flip${flip}_types${useTypes}_outside_${outsideWidth}
 echo working in $out
 mkdir -p $out
@@ -76,7 +76,7 @@ done
 
 
 
-start=`expr 4 + $outsideWidth + $outsideWidth`
+start=`expr 3 + $outsideWidth + $outsideWidth`
 end=`expr $start + 7`
 
 for name in dev trainCross

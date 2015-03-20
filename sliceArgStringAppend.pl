@@ -42,6 +42,8 @@ while(<I>){
     my $entType = $entT{$rel};
     my $slotType = $slotT{$rel};
 
+    my $left_arg_start = $start1;
+    my $right_arg_end = $end2;
 
     my $leftArgStr = $entType;
     my $rightArgStr = $slotType;
@@ -50,6 +52,9 @@ while(<I>){
     if($start1 > $start2){
 	$gap_start = $end2;
 	$gap_end = $start1 - 1;
+
+	$left_arg_start = $start2;
+	$right_arg_end = $end1;
 	$lr = 0;
 	if($flip){
 	    $flipIt = 1;
@@ -74,7 +79,7 @@ while(<I>){
 
     if($outsideWidth > 0){
 	foreach my $offset ((1..$outsideWidth)){
-	    my $idx = $gap_start - $offset;
+	    my $idx = $left_arg_start - $offset;
 	    if($idx >=0){
 		unshift(@mappedToks,$toks[$idx]);
 	    }else{
@@ -84,7 +89,7 @@ while(<I>){
 	}
 	my $len = scalar(@toks);
 	foreach my $offset ((1..$outsideWidth)){
-	    my $idx = $gap_end + $offset;
+	    my $idx = $right_arg_end + $offset-1;
 	    if($idx <=$len){
 		push(@mappedToks,$toks[$idx]);
 	    }else{

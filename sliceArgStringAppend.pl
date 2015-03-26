@@ -4,7 +4,7 @@ open(M,$ARGV[1])||die;
 my $flip = $ARGV[2];
 my $useTypes = ($ARGV[3] == 1);
 my $outsideWidth = $ARGV[4];
-my $min_width = 2 + 2*$outsideWidth+2;
+my $min_width = $ARGV[5];
 
 
 my %entT = {};
@@ -73,6 +73,9 @@ while(<I>){
     
 
     my @mappedToks = map{normalize($_,$flipIt)} @toks[$gap_start..$gap_end];
+    if(scalar(@mappedToks) == 0){
+	push(@mappedToks,'<EMPTY>');
+    }
     
     unshift(@mappedToks,$leftArgStr);
     push(@mappedToks,$rightArgStr);
@@ -90,7 +93,7 @@ while(<I>){
 	my $len = scalar(@toks);
 	foreach my $offset ((1..$outsideWidth)){
 	    my $idx = $right_arg_end + $offset-1;
-	    if($idx <=$len){
+	    if($idx <$len){
 		push(@mappedToks,$toks[$idx]);
 	    }else{
 		push(@mappedToks,'<PAD>');

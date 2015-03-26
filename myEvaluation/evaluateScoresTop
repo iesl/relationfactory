@@ -15,3 +15,4 @@ sort -t$'\t' -k9 -nr   $tmpPrediction.1 | head -n $headNum > $tmpPrediction
 echo sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 
+rm $tmpPrediction*

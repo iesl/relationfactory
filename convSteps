@@ -1,26 +1,31 @@
 set -e 
 trainfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
 devfile=/iesl/canvas/beroth/tac/runs/run20140314/candidates
+goodfile=/iesl/canvas/beroth/tac/data/gold_candidates
 vocabThresh=25
 
 tb=`basename $trainfile`
 db=`basename $devfile`
+gb=`basename $goodfile`
 
-out=$PWD/convData
 flip=0
 useTypes=0
-outsideWidth=3
-out=$PWD/convDataFlip_flip${flip}_types${useTypes}_outside_${outsideWidth}
+outsideWidth=2
+min_width=7
+out=$PWD/convDataFlip_flip${flip}_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
 echo working in $out
 mkdir -p $out
 ot=$out/$tb
 otc=$out/$tb.cross
 od=$out/$db
+og=$out/$gb
 
 shuf $trainfile > $ot.shuff.tmp
 shuf $devfile > $od.shuff
+shuf $goodfile > $og.shuff
 
-crossLen=`wc -l $ot.shuff.tmp | cut -d" " -f1 | xargs -ifoo expr foo / 7`
+#crossLen=`wc -l $ot.shuff.tmp | cut -d" " -f1 | xargs -ifoo expr foo / 7`
+crossLen=0
 
 
 tail -n $crossLen $ot.shuff.tmp > $otc.shuff
@@ -32,9 +37,9 @@ head -n $trainLen $ot.shuff.tmp > $ot.shuff
 
 #format: <relname>\t<l/r>\t<string>
 #here, l/r=1 if arg1 comes first and 0 if they are swapped
-for f in $ot $otc $od
+for f in $ot $otc $od $og
 do
-	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth > $f.argstring
+	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $f.argstring
 done
 
 
@@ -51,7 +56,7 @@ else
 	cp $out/labelMap.txt.tmp $out/labelMap.txt
 fi
 
-for f in $ot $otc $od
+for f in $ot $otc $od $og
 do
 	perl mapToInts.pl $f.argstring  $out/vocab.txt $out/labelMap.txt $flip > $f.argInt
 done
@@ -60,12 +65,14 @@ done
 mkdir -p $out/trainSplit/
 mkdir -p $out/devSplit/
 mkdir -p $out/trainCrossSplit/
+mkdir -p $out/goodSplit/
 
 perl splitByLength.pl $ot.argInt $ot.shuff $out/trainSplit/train.
 perl splitByLength.pl $otc.argInt $otc.shuff $out/trainCrossSplit/trainCross.
 perl splitByLength.pl $od.argInt $od.shuff $out/devSplit/dev.
+perl splitByLength.pl $og.argInt $og.shuff $out/goodSplit/good.
 
-for f in $out/{train,dev,trainCross}Split/*.int.txt
+for f in $out/{train,dev,trainCross,good}Split/*.int.txt
 do 
    outfile=`echo $f | sed 's|.txt$|.torch|'`
    len=`basename $f .int.txt| sed 's|.*\.-||'`
@@ -76,10 +83,10 @@ done
 
 
 
-start=`expr 3 + $outsideWidth + $outsideWidth`
-end=`expr $start + 7`
+start=$min_width
+end=`expr $min_width + 8`
 
-for name in dev trainCross
+for name in dev trainCross good
 do
 list=$out/paired.$name.FileList.txt
 rm -f $list
@@ -92,12 +99,17 @@ f=$out/${name}Split/$name.-$ii.string.txt
    echo $torchfile $outfile >> $list
 done
 done
+cat $out/devSplit/dev.string.txt.long |  cut -f1-8  > $out/devSplit/dev.string.txt.long.lhs
 
 list=$out/trainFileList.txt
 rm -f $list
 
+goodList=$out/goodFileList.txt
+rm -f $goodList
+
 for i in `seq $start $end`
 do
 	echo $out/trainSplit/train.-$i.int.torch >> $list
+	echo $out/goodSplit/good.-$i.int.torch >> $goodList
 done
 

@@ -9,7 +9,7 @@ db=`basename $devfile`
 gb=`basename $goodfile`
 
 flip=0
-useTypes=0
+useTypes=1
 outsideWidth=2
 min_width=7
 out=$PWD/convDataFlip_flip${flip}_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
@@ -24,9 +24,7 @@ shuf $trainfile > $ot.shuff.tmp
 shuf $devfile > $od.shuff
 shuf $goodfile > $og.shuff
 
-#crossLen=`wc -l $ot.shuff.tmp | cut -d" " -f1 | xargs -ifoo expr foo / 7`
-crossLen=0
-
+crossLen=`wc -l $ot.shuff.tmp | cut -d" " -f1 | xargs -ifoo expr foo / 8`
 
 tail -n $crossLen $ot.shuff.tmp > $otc.shuff
 

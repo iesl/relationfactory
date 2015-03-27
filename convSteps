@@ -1,6 +1,6 @@
 set -e 
 trainfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
-devfile=/iesl/canvas/beroth/tac/runs/run20140314/candidates
+devfile=/iesl/canvas/beroth/tac/data/candidates2009-2012
 goodfile=/iesl/canvas/beroth/tac/data/gold_candidates
 vocabThresh=25
 

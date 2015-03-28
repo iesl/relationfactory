@@ -6,14 +6,12 @@ tmpdir=`mktemp -d`
 ##warning: the outReport must be a absolute path
 mkdir -p $tmpdir/out/run2013
 echo computing performance for $predictionFile
-echo example dir = $exampleDir
 for f in $exampleDir/* 
 do
 ln -s $f $tmpdir/out/run2013
 done
-
-rm -f $tmpdir/out/run2013/makefile
-rm -f $tmpdir/out/run2013/log4j.txt
+rm $tmpdir/out/run2013/makefile
+rm $tmpdir/out/run2013/log4j.txt
 ln -s $predictionFile $tmpdir/out/run2013/predictions_classifier_david
 cd $tmpdir
 source /iesl/canvas/belanger/relationfactory/myEvaluation/setupPaths  $PWD/out/
@@ -23,7 +21,7 @@ source /iesl/canvas/belanger/relationfactory/myEvaluation/setupPaths  $PWD/out/
 echo working in $PWD
 
 echo ISOLATED PERFORMANCE | tee $outReport
-/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2012_isolated.config
+/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_isolated.config
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_classifier_david_pp13 | tee -a $outReport
 
 #echo 

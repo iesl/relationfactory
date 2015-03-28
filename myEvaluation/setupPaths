@@ -1,5 +1,5 @@
 rundir=$1
 export TAC_RUNS=$rundir
 export TAC_MODELS=/iesl/canvas/beroth/tac/data/relationfactory_models
-export TAC_ROOT=/iesl/canvas/beroth/tac/relationfactory/
+#export TAC_ROOT=/iesl/canvas/beroth/tac/relationfactory/
 

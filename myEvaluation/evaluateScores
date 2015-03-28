@@ -13,3 +13,4 @@ echo sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPredicti
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 
 rm $tmpPrediction*
+

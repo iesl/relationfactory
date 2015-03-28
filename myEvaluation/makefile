@@ -143,7 +143,8 @@ response2012: response_all_pp12
 	$(TAC_ROOT)/components/bin/postprocess2013_nolinkstat.sh $+ $@
 
 # Postprocess response for 2012 format
-%_pp12: % query_expanded.xml
+%_pp12: % query_expanded.xml /dev/null
+	echo $(TAC_ROOT)/components/bin/postprocess2012.sh
 	$(TAC_ROOT)/components/bin/postprocess2012.sh $+ $@
 
 

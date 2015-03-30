@@ -25,18 +25,19 @@ echo working in $PWD
 
 echo ISOLATED PERFORMANCE | tee $outReport
 /iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2012_isolated.config
-sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_classifier_david_pp13 | tee -a $outReport
+echo sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_classifier_david_pp12
+sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_classifier_david_pp12 | tee -a $outReport
 
 #echo 
 #echo COMBINATION PERFORMANCE NO SVM| tee -a $outReport
 #/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_nosvm.config
-#sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_fast_david_nosvm_pp13 | tee -a $outReport
+#sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_fast_david_nosvm_pp12 | tee -a $outReport
 
 #echo COMBINATION PERFORMANCE | tee -a $outReport
 #/iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_all.config
-#sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_fast_david_pp13 | tee -a $outReport
+#sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_fast_david_pp12 | tee -a $outReport
 
 
 
-rm -rf $tmpdir
+#rm -rf $tmpdir
 

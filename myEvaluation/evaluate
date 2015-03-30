@@ -7,14 +7,15 @@ tmpdir=`mktemp -d`
 mkdir -p $tmpdir/out/run2013
 echo computing performance for $predictionFile
 echo example dir = $exampleDir
-for f in $exampleDir/* 
+for fn in query.xml query_expanded.xml
 do
-ln -s $f $tmpdir/out/run2013
+f=$exampleDir/$fn
+cp  $f $tmpdir/out/run2013/$fn
 done
 
+ln -s $predictionFile $tmpdir/out/run2013/predictions_classifier_david
 rm -f $tmpdir/out/run2013/makefile
 rm -f $tmpdir/out/run2013/log4j.txt
-ln -s $predictionFile $tmpdir/out/run2013/predictions_classifier_david
 cd $tmpdir
 source /iesl/canvas/belanger/relationfactory/myEvaluation/setupPaths  $PWD/out/
 

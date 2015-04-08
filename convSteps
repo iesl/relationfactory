@@ -1,7 +1,7 @@
 set -e 
 trainfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
 devfile=/iesl/canvas/beroth/tac/data/candidates2009-2012
-goodfile=/iesl/canvas/beroth/tac/data/gold_candidates
+goodfile=/iesl/canvas/belanger/NLPConv/stanford/mimlre-2014-07-17-data/annotated_sentences.tab.nr
 vocabThresh=25
 
 tb=`basename $trainfile`
@@ -9,10 +9,10 @@ db=`basename $devfile`
 gb=`basename $goodfile`
 
 flip=0
-useTypes=0
-outsideWidth=2
-min_width=7
-out=$PWD/convDataFlip_flip${flip}_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
+useTypes=1
+outsideWidth=0
+min_width=4
+out=$PWD/convData_s_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
 echo working in $out
 mkdir -p $out
 ot=$out/$tb
@@ -24,8 +24,8 @@ shuf $trainfile > $ot.shuff.tmp
 shuf $devfile > $od.shuff
 shuf $goodfile > $og.shuff
 
-crossLen=`wc -l $ot.shuff.tmp | cut -d" " -f1 | xargs -ifoo expr foo / 8`
-
+#crossLen=`wc -l $ot.shuff.tmp | cut -d" " -f1 | xargs -ifoo expr foo / 8`
+crossLen=0
 tail -n $crossLen $ot.shuff.tmp > $otc.shuff
 
 len=`wc -l $ot.shuff.tmp | cut -d" " -f1`
@@ -35,7 +35,7 @@ head -n $trainLen $ot.shuff.tmp > $ot.shuff
 
 #format: <relname>\t<l/r>\t<string>
 #here, l/r=1 if arg1 comes first and 0 if they are swapped
-for f in $ot $otc $od $og
+for f in $og $ot $otc $od 
 do
 	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $f.argstring
 done

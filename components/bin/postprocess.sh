@@ -9,10 +9,11 @@ OUTPUT=$3
 COMP=$TAC_ROOT/components/pipeline/
 JAVA_HOME=$TAC_ROOT/lib/java/jdk1.6.0_18/
 
-LINKSTAT=`$TAC_ROOT/bin/get_expand_config.sh wikilinks /dev/null`
-
+#LINKSTAT=`$TAC_ROOT/bin/get_expand_config.sh wikilinks /dev/null`
+LINKSTAT=/dev/null
 # Remove redundancy according to anchor text heuristics.
 
-$TAC_ROOT/components/bin/run.sh run.RedundancyEliminator $LINKSTAT $INPUT $QUERYXML \
-> $OUTPUT
+echo $TAC_ROOT/components/bin/run.sh run.RedundancyEliminator $LINKSTAT $INPUT $QUERYXML 
+$TAC_ROOT/components/bin/run.sh run.RedundancyEliminator $LINKSTAT $INPUT $QUERYXML > $OUTPUT
+
 

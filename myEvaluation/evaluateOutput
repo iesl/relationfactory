@@ -1,6 +1,5 @@
 #!/bin/bash
 pred=$1
 
-echo /iesl/canvas/belanger/relationfactory/myEvaluation/bin/score2012.sh   $1 /iesl/canvas/beroth/tac/data/key_2009-2012
 /iesl/canvas/belanger/relationfactory/myEvaluation/bin/score2012.sh   $1 /iesl/canvas/beroth/tac/data/key_2009-2012
 

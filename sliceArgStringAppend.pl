@@ -38,7 +38,7 @@ while(<I>){
     my $gap_start = $end1;
     my $gap_end = $start2 - 1;
     my $rel = $fields[1];
-    die unless(exists $entT{$rel});
+    die "relation $rel not found\n" unless(exists $entT{$rel});
     my $entType = $entT{$rel};
     my $slotType = $slotT{$rel};
 

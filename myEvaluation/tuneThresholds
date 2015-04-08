@@ -6,23 +6,26 @@ tunedOutput=$out.tunedOutput
 
 suffixes=""
 pfx=`mktemp`
-queryXML=/iesl/canvas/beroth/tac/runs/run20140314/query_expanded.xml
+queryXML=/iesl/canvas/belanger/relationfactory/example2012/query_expanded.xml
 
 
 thresh=`cut -f9 $predictions | sort -n -r | head -5000 | tail -1`
-echo 5000th 
-for thresh in 5 4 3 2 1 0.5 0.1 
+
+for thresh in 4 3 2 1 0.5 0.1 
 do
     sfx=t-$thresh
     perl /home/belanger/relationfactory/myEvaluation/mapWithThreshold.pl $predictions $thresh > $pfx.$sfx.pred
+echo    $TAC_ROOT/components/bin/response.sh $queryXML $pfx.$sfx.pred $pfx.$sfx.response
     $TAC_ROOT/components/bin/response.sh $queryXML $pfx.$sfx.pred $pfx.$sfx.response
-    $TAC_ROOT/components/bin/postprocess2013_nolinkstat.sh $pfx.$sfx.response /iesl/canvas/beroth/tac/runs/run20140314/query_expanded.xml /dev/null $pfx.$sfx
+echo     $TAC_ROOT/components/bin/postprocess.sh $pfx.$sfx.response $queryXML /dev/null $pfx.$sfx
+    $TAC_ROOT/components/bin/postprocess.sh $pfx.$sfx.response $queryXML $pfx.$sfx
     suffixes="$suffixes .$sfx"
 done
 
-/iesl/canvas/beroth/tac/evaluation/bin/tunej.sh $key $pfx $suffixes    
+echo /iesl/canvas/belanger/relationfactory/myEvaluation/bin/tunej.sh $key $pfx $suffixes    
+/iesl/canvas/belanger/relationfactory/myEvaluation/bin/tunej.sh $key $pfx $suffixes    
 cp ${pfx}params $tunedParams
 cp ${pfx}tuned $tunedOutput
 
-rm $pfx*
+#rm $pfx*
 

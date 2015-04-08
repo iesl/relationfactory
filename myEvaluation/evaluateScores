@@ -9,7 +9,6 @@ paste  $lhsFile $predictionFile > $tmpPrediction.1
 perl /iesl/canvas/belanger/relationfactory/myEvaluation/filterByThresh.pl $tmpPrediction.1 $thresh> $tmpPrediction
 
 
-echo sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 
 rm $tmpPrediction*

@@ -1,9 +1,9 @@
 predictionFile=$1
 exampleDir=$2
-outReport=$3
-outReport=$PWD/$outReport
-tmpdir=`mktemp -d`
 ##warning: the outReport must be a absolute path
+outReport=$3
+tmpdir=`mktemp -d`
+
 mkdir -p $tmpdir/out/run2013
 echo computing performance for $predictionFile
 echo example dir = $exampleDir
@@ -25,7 +25,6 @@ echo working in $PWD
 
 echo ISOLATED PERFORMANCE | tee $outReport
 /iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2012_isolated.config
-echo sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_classifier_david_pp12
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/run2013/response_classifier_david_pp12 | tee -a $outReport
 
 #echo 
@@ -39,5 +38,5 @@ sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput $PWD/out/ru
 
 
 
-#rm -rf $tmpdir
+rm -rf $tmpdir
 

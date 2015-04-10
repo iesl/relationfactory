@@ -1,4 +1,4 @@
-apredictionFile=$1
+predictionFile=$1
 exampleDir=$2
 ##warning: the outReport must be a absolute path
 outReport=$3
@@ -25,6 +25,7 @@ echo working in $PWD
 
 echo ISOLATED PERFORMANCE | tee $outReport
 /iesl/canvas/belanger/relationfactory/bin/run.sh /iesl/canvas/belanger/relationfactory/myEvaluation/system2013_isolated.config
+echo sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput2013 $PWD/out/run2013/response_classifier_david_pp13 
 sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluateOutput2013 $PWD/out/run2013/response_classifier_david_pp13 | tee -a $outReport
 
 #echo 

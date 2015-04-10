@@ -10,14 +10,12 @@ queryXML=/iesl/canvas/belanger/relationfactory/example2012/query_expanded.xml
 
 
 thresh=`cut -f9 $predictions | sort -n -r | head -5000 | tail -1`
-
-for thresh in 4 3 2 1 0.5 0.1 
+#for thresh in 3 2 1.5 1 0.5 0.1  0 0.25 -0.1 -0.25 -.5 -1 -1.5
+for thresh in 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9
 do
     sfx=t-$thresh
     perl /home/belanger/relationfactory/myEvaluation/mapWithThreshold.pl $predictions $thresh > $pfx.$sfx.pred
-echo    $TAC_ROOT/components/bin/response.sh $queryXML $pfx.$sfx.pred $pfx.$sfx.response
     $TAC_ROOT/components/bin/response.sh $queryXML $pfx.$sfx.pred $pfx.$sfx.response
-echo     $TAC_ROOT/components/bin/postprocess.sh $pfx.$sfx.response $queryXML /dev/null $pfx.$sfx
     $TAC_ROOT/components/bin/postprocess.sh $pfx.$sfx.response $queryXML $pfx.$sfx
     suffixes="$suffixes .$sfx"
 done

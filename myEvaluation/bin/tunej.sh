@@ -39,7 +39,6 @@ while read REL; do
     grep $REL ${RESPONSE_PREFIX}${JPARAM} >> $TMP_RESPONSE
 #    echo "java -cp $TAC_ROOT/evaluation/bin/ SFScore $TMP_RESPONSE $key slots=$slotlist nocase anydoc"
 #    FSCORE=`java -cp $TAC_ROOT/evaluation/bin/ SFScore $TMP_RESPONSE $key slots=$slotlist nocase anydoc | grep 'F1: ' | sed 's#.*F1:\(.*\)#\1#'`
-    echo executing /iesl/canvas/belanger/relationfactory/myEvaluation/bin/score2012.sh  $TMP_RESPONSE $key
     FSCORE=`/iesl/canvas/belanger/relationfactory/myEvaluation/bin/score2012.sh  $TMP_RESPONSE $key | grep 'F1: ' | sed 's#.*F1:\(.*\)#\1#'`
 
     echo $FSCORE

@@ -1,24 +1,27 @@
 set -e 
 trainfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
 devfile=/iesl/canvas/beroth/tac/data/candidates2009-2012
-goodfile=/iesl/canvas/belanger/NLPConv/stanford/mimlre-2014-07-17-data/annotated_sentences.tab.nr
-vocabThresh=25
+goodfile=/home/belanger/relationfactory/stanford/annotated_sentences.tab.nr
+goodfile2=/iesl/canvas/beroth/tac/data/gold_candidates
+vocabThresh=12
 
 tb=`basename $trainfile`
 db=`basename $devfile`
 gb=`basename $goodfile`
+gb=`basename $goodfile`
 
 flip=0
-useTypes=1
+useTypes=0
 outsideWidth=0
 min_width=4
-out=$PWD/convData_s_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
+out=$PWD/convData_s2_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
 echo working in $out
 mkdir -p $out
 ot=$out/$tb
 otc=$out/$tb.cross
 od=$out/$db
 og=$out/$gb
+og2=$out/$gb2
 
 shuf $trainfile > $ot.shuff.tmp
 shuf $devfile > $od.shuff

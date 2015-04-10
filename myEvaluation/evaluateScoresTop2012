@@ -1,9 +1,9 @@
-year=$1
-predictionFile=$2
-lhsFile=$3
-exampleDir=$4
-headNum=$5
-outReport=$6
+
+predictionFile=$1
+lhsFile=$2
+exampleDir=$3
+headNum=$4
+outReport=$5
 
 
 headNum=`echo $headNum | sed 's|\..*||'`
@@ -11,7 +11,7 @@ tmpPrediction=`mktemp`
 paste  $lhsFile $predictionFile > $tmpPrediction.1
 
 sort -t$'\t' -k9 -nr   $tmpPrediction.1 | head -n $headNum > $tmpPrediction
-sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate${year} $tmpPrediction $exampleDir $outReport  
+sh /iesl/canvas/belanger/relationfactory/myEvaluation/evaluate $tmpPrediction $exampleDir $outReport  
 
 rm $tmpPrediction*
 

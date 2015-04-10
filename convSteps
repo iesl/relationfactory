@@ -14,7 +14,7 @@ flip=0
 useTypes=0
 outsideWidth=0
 min_width=4
-out=$PWD/convData_s2_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
+out=$PWD/convData_s_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
 echo working in $out
 mkdir -p $out
 ot=$out/$tb
@@ -23,9 +23,12 @@ od=$out/$db
 og=$out/$gb
 og2=$out/$gb2
 
-shuf $trainfile > $ot.shuff.tmp
-shuf $devfile > $od.shuff
-shuf $goodfile > $og.shuff
+seq 1 10000000  > /tmp/seed
+echo shuffling
+shuf --random-source=/tmp/seed  $trainfile > $ot.shuff.tmp
+shuf --random-source=/tmp/seed  $devfile > $od.shuff
+shuf --random-source=/tmp/seed  $goodfile > $og.shuff
+
 
 #crossLen=`wc -l $ot.shuff.tmp | cut -d" " -f1 | xargs -ifoo expr foo / 8`
 crossLen=0

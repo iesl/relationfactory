@@ -17,5 +17,5 @@ while(<I>){
 	$bit = 1- $bit;
     }
     my $ss = join(" ",@sent);
-    print $fields[0]."\t".$fields[1].$ss."\n";
+    print $fields[0]."\t".$fields[1]."\t".$ss."\n";
 }

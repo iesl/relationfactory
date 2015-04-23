@@ -6,7 +6,8 @@ useTypes=0
 outsideWidth=2
 min_width=7
 vocabThresh=25
-out=$PWD/convData_s2_types${useTypes}_outside_${outsideWidth}_mw_${min_width}_mi_$mi
+padSize=12
+out=$PWD/convData_s2_types${useTypes}_outside_${outsideWidth}_mw_${min_width}_mi_$mi_pad_${padSize}
 echo working in $out
 mkdir -p $out
 
@@ -74,9 +75,8 @@ do
 	f=$out/$name
 	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $f.argstring.full
 	
-	if [ "$mi" == 0 ]; then
-	   perl pad.pl $f.argstring.full > $f.argstring
-           converter=../NLPConv/seq2torch.lua
+	if [ "$mi" == 1 ]; then
+	   perl pad.pl $f.argstring.full $padSize  > $f.argstring
         else
 	   cp $f.argstring.full $f.argstring
 	fi
@@ -93,7 +93,7 @@ do
         else
 	   cut -f1,3 $f.shuff | sed 's|\t|:::|' > $f.entPairs
 
-	   paste $f.entPairs $f.argInt.pad  > $f.argInt.ep
+	   paste $f.entPairs $f.argInt  > $f.argInt.ep
 	   lhs=$d/$name.-0.string.txt
 	   cut -f1-8 $f.shuff > $lhs.full
 	   perl collectEP.pl $f.argInt.ep $lhs.full $d/$name.-0.int.txt $lhs

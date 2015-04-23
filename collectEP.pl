@@ -24,7 +24,7 @@ while(<I>){
 	push(@cur_labels,$label);
     }else{
 	if($cnt > 0){
-	    my @cur_labels_mod = uniq @cur_labels; #deduplicate
+	    my @cur_labels_mod = uniq(@cur_labels);
 	    print OS join(",",@cur_labels_mod)."\t".join(",",@cur_sentences)."\n";
 	    print OL $prototype_lhs;
 	}
@@ -42,15 +42,7 @@ while(<I>){
 close(I);
 close(L);
 
-foreach $name (@names){
-    die unless(exists $prototypes{$name});
-    if(exists $examples{$name}){
-	my $prototype = $prototypes{$name};
-	my @curFeats = @{$examples{$name}};
-	print $prototype."\t".join("&&&",@curFeats)."&&&\n";
-    }else{
-	die "failed: $name\n";
-    }
-
+sub uniq {
+    my %seen;
+    return grep { !$seen{$_}++ } @_;
 }
-

@@ -5,7 +5,11 @@ my $flip = $ARGV[2];
 my $useTypes = ($ARGV[3] == 1);
 my $outsideWidth = $ARGV[4];
 my $min_width = $ARGV[5];
-
+my $maxLen = $ARGV[6];
+my $outSlice = $ARGV[7];
+my $outOrig = $ARGV[8];
+open(O,">$outSlice")||die;
+open(O2,">$outOrig")||die;
 
 my %entT = {};
 my %slotT = {};
@@ -112,9 +116,12 @@ while(<I>){
     die unless(scalar(@mappedToks) >= $min_width);
 
     my $str = join(' ',@mappedToks);
-    #unless($gap_start > $gap_end){
-    print("$rel\t$lr\t$str\n");
-    #}#else... is it safe to assume that all the ones with 0 intervening text are 'alternate names'
+
+    if(scalar(@mappedToks) < $maxLen){
+	print O "$rel\t$lr\t$str\n";
+	print O2 $o;
+    }
+
 
 
 }

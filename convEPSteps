@@ -34,11 +34,9 @@ do
 	f=`echo $n | cut -d":" -f2`
 
 	if [ "$mi" == 0 ]; then
-	   shuf --random-source=/tmp/seed2  $f > $out/$b.shuff.tmp 
-	   perl filterMaxLength.pl $out/$b.shuff.tmp $maxLen > $out/$b.shuff
+	   shuf --random-source=/tmp/seed2  $f > $out/$b.shuff.full 
 	else
-	   cat $f | sort -k 1,1  -k 3,3   > $out/$b.shuff.tmp
-	   perl filterMaxLength.pl $out/$b.shuff.tmp $maxLen > $out/$b.shuff
+	   cat $f | sort -k 1,1  -k 3,3   > $out/$b.shuff.full
 	fi
 
 done
@@ -75,7 +73,7 @@ for n in `cat $names`
 do
 	name=`echo $n | cut -d":" -f1`
 	f=$out/$name
-	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $f.argstring.full
+	perl sliceArgStringAppend.pl $f.shuff.full relTypes.txt $flip $useTypes $outsideWidth $min_width $maxLen  $f.argstring.full $f.shuff
 	
 	if [ "$mi" == 1 ]; then
 	   perl pad.pl $f.argstring.full $padSize  > $f.argstring

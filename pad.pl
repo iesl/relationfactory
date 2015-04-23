@@ -8,6 +8,7 @@ while(<I>){
     my @fields = split("\t");
     my @sent = split(" ",$fields[2]);
     my $bit = 1;
+    
     while(scalar(@sent) < $psize){
 	if($bit){
 	    push(@sent,$p);

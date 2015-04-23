@@ -13,7 +13,7 @@ gb=`basename $goodfile`
 flip=0
 useTypes=0
 outsideWidth=0
-min_width=4
+min_width=3
 out=$PWD/convData_s_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
 echo working in $out
 mkdir -p $out

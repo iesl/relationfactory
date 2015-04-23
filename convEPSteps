@@ -1,11 +1,12 @@
 set -e 
 
 flip=0
+mi=1
 useTypes=0
 outsideWidth=2
 min_width=7
 vocabThresh=25
-out=$PWD/convData_s2_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
+out=$PWD/convData_s2_types${useTypes}_outside_${outsideWidth}_mw_${min_width}_mi_$mi
 echo working in $out
 mkdir -p $out
 
@@ -30,7 +31,12 @@ for n in `cat $names`
 do
 	b=`echo $n | cut -d":" -f1`
 	f=`echo $n | cut -d":" -f2`
-	shuf --random-source=/tmp/seed2  $f > $out/$b.shuff
+
+	if [ "$mi" == 0 ]; then
+	   shuf --random-source=/tmp/seed2  $f > $out/$b.shuff
+	else
+	   cat $f | sort --key=1,1 --key=2,3 > $out/$b.shuff
+	fi
 
 done
 
@@ -68,16 +74,31 @@ do
 	f=$out/$name
 	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $f.argstring
 	perl mapToInts.pl $f.argstring  $out/vocab.txt $out/labelMap.txt $flip > $f.argInt
+
 	d=$out/${name}Split/
 	mkdir -p $d
-	perl splitByLength.pl $f.argInt $f.shuff $d/$name.
+	converter=""
+
+        if [ "$mi" == 0 ]; then
+	   perl splitByLength.pl $f.argInt $f.shuff $d/$name.
+	   converter=../NLPConv/seq2torch.lua
+        else
+	   cut -f1,3 $f.shuff | sed 's|\t|:::|' > $f.entPairs
+	   paste $f.entPairs $f.argInt  > $f.argInt.ep
+	   lhs=$d/$name.-0.string.txt
+	   cut -f1-8 $f.shuff > $lhs.full
+	   perl collectEP.pl $f.argInt.ep $lhs.full $d/$name.-0.int.txt $lhs
+	   converter=../NLPConv/miml2torch.lua
+	   start=0
+	   end=0
+	fi
+	
 	for f in $d/*.int.txt
 	do 
 	   outfile=`echo $f | sed 's|.txt$|.torch|'`
    	   len=`basename $f .int.txt| sed 's|.*\.-||'`
-   	   wc -l $f
-	   echo th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
-	   th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
+	   echo th $converter -file $f -len $len -out $outfile
+	   th $converter -file $f -len $len -out $outfile
 	done
 		
 	list=$out/paired.$name.FileList.txt
@@ -89,7 +110,10 @@ do
 		f=$out/${name}Split/$name.-$ii.string.txt
 		outfile=`echo $f | sed 's|.txt$|.lhs|'`
 		torchfile=`echo $f | sed 's|string.txt$|int.torch|'`
-		cat $f | cut -f1-8 > $outfile
+		if [ "$mi" == 0 ]; then
+		   cat $f | cut -f1-8 > $outfile
+		fi
+		
 		echo $torchfile $outfile >> $list
 		echo $torchfile >> $list2
 	done

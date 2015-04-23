@@ -35,7 +35,7 @@ do
 	if [ "$mi" == 0 ]; then
 	   shuf --random-source=/tmp/seed2  $f > $out/$b.shuff
 	else
-	   cat $f | sort --key=1,1 --key=2,3 > $out/$b.shuff
+	   cat $f | sort -k 1,1  -k 3,3  > $out/$b.shuff
 	fi
 
 done
@@ -72,7 +72,15 @@ for n in `cat $names`
 do
 	name=`echo $n | cut -d":" -f1`
 	f=$out/$name
-	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $f.argstring
+	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $f.argstring.full
+	
+	if [ "$mi" == 0 ]; then
+	   perl pad.pl $f.argstring.full > $f.argstring
+           converter=../NLPConv/seq2torch.lua
+        else
+	   cp $f.argstring.full $f.argstring
+	fi
+	
 	perl mapToInts.pl $f.argstring  $out/vocab.txt $out/labelMap.txt $flip > $f.argInt
 
 	d=$out/${name}Split/
@@ -84,7 +92,8 @@ do
 	   converter=../NLPConv/seq2torch.lua
         else
 	   cut -f1,3 $f.shuff | sed 's|\t|:::|' > $f.entPairs
-	   paste $f.entPairs $f.argInt  > $f.argInt.ep
+
+	   paste $f.entPairs $f.argInt.pad  > $f.argInt.ep
 	   lhs=$d/$name.-0.string.txt
 	   cut -f1-8 $f.shuff > $lhs.full
 	   perl collectEP.pl $f.argInt.ep $lhs.full $d/$name.-0.int.txt $lhs

@@ -9,7 +9,7 @@ my $maxLen = $ARGV[6];
 my $outSlice = $ARGV[7];
 my $outOrig = $ARGV[8];
 open(O,">$outSlice")||die;
-open(O2,">$outOrig")||die;
+open(O2,">$outOrig")||die "can't write to $outOrig\n";
 
 my %entT = {};
 my %slotT = {};

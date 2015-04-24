@@ -3,11 +3,11 @@ set -e
 flip=0
 mi=1
 useTypes=0
-outsideWidth=2
-min_width=7
+outsideWidth=0
+min_width=4
 vocabThresh=25
-padSize=12
-out=$PWD/convData_s2_types${useTypes}_outside_${outsideWidth}_mw_${min_width}_mi_$mi_pad_${padSize}
+maxLen=15
+out=$PWD/convData_s3_types${useTypes}_outside_${outsideWidth}_mw_${min_width}_mi_$mi_pad_${maxLen}
 echo working in $out
 mkdir -p $out
 
@@ -50,13 +50,13 @@ ot=$out/train
 #format: <relname>\t<l/r>\t<string>
 #here, l/r=1 if arg1 comes first and 0 if they are swapped
 
-perl sliceArgStringAppend.pl $ot.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $ot.argstring
+perl sliceArgStringAppend.pl $ot.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width $maxLen  $ot.argstring.full /dev/null
 
-cut -f3 $ot.argstring | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*||' | perl -ne '$o = $_; /(\d*)/;  if($1 > 10){print $o;}'> $out/vocab.counts.txt
+cut -f3 $ot.argstring.full | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*||' | perl -ne '$o = $_; /(\d*)/;  if($1 > 10){print $o;}'> $out/vocab.counts.txt
 cut -d" " -f2 $out/vocab.counts.txt > $out/vocab.txt
 echo "<unk>" >> $out/vocab.txt
 
-cut -f1 $ot.argstring  | sort -u > $out/labelMap.txt.tmp
+cut -f1 $ot.argstring.full  | sort -u > $out/labelMap.txt.tmp
 
 if [ "$flip" == 0 ]; then
    cp $out/labelMap.txt.tmp $out/labelMap.txt
@@ -76,7 +76,7 @@ do
 	perl sliceArgStringAppend.pl $f.shuff.full relTypes.txt $flip $useTypes $outsideWidth $min_width $maxLen  $f.argstring.full $f.shuff
 	
 	if [ "$mi" == 1 ]; then
-	   perl pad.pl $f.argstring.full $padSize  > $f.argstring
+	   perl pad.pl $f.argstring.full $maxLen  > $f.argstring
         else
 	   cp $f.argstring.full $f.argstring
 	fi
@@ -92,9 +92,8 @@ do
 	   converter=../NLPConv/seq2torch.lua
         else
 	   cut -f1,3 $f.shuff | sed 's|\t|:::|' > $f.entPairs
-
 	   paste $f.entPairs $f.argInt  > $f.argInt.ep
-	   lhs=$d/$name.-0.string.txt
+	   lhs=$d/$name.-0.string.lhs
 	   cut -f1-8 $f.shuff > $lhs.full
 	   perl collectEP.pl $f.argInt.ep $lhs.full $d/$name.-0.int.txt $lhs
 	   converter=../NLPConv/miml2torch.lua

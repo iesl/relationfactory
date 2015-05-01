@@ -5,11 +5,12 @@ useTypes=0
 outsideWidth=2
 min_width=7
 vocabThresh=25
-out=$PWD/convData_s2_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
+out=$PWD/convData_s3_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
 echo working in $out
 mkdir -p $out
 
-trainfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
+trainfile=/iesl/canvas/beroth/tac/patternmatches.final.mapped
+dsfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
 devfile=/iesl/canvas/beroth/tac/data/candidates2009-2012
 goodfile=/home/belanger/relationfactory/stanford/annotated_sentences.tab.nr
 goodfile2=/iesl/canvas/beroth/tac/data/gold_candidates
@@ -18,6 +19,7 @@ testfile=/iesl/canvas/beroth/tac/runs/run20140314/candidates
 names=`mktemp`
 cat <<_i_ > $names
 train:$trainfile
+ds:$dsfile
 dev:$devfile
 stanford:$goodfile
 2012Gold:$goodfile2
@@ -43,7 +45,7 @@ ot=$out/train
 #format: <relname>\t<l/r>\t<string>
 #here, l/r=1 if arg1 comes first and 0 if they are swapped
 
-perl sliceArgStringAppend.pl $ot.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $ot.argstring
+perl sliceArgStringAppend.pl $ot.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width  1000  $ot.argstring /dev/null
 
 cut -f3 $ot.argstring | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*||' | perl -ne '$o = $_; /(\d*)/;  if($1 > 10){print $o;}'> $out/vocab.counts.txt
 cut -d" " -f2 $out/vocab.counts.txt > $out/vocab.txt
@@ -66,7 +68,7 @@ for n in `cat $names`
 do
 	name=`echo $n | cut -d":" -f1`
 	f=$out/$name
-	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $f.argstring
+	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width 1000  $f.argstring /dev/null
 	perl mapToInts.pl $f.argstring  $out/vocab.txt $out/labelMap.txt $flip > $f.argInt
 	d=$out/${name}Split/
 	mkdir -p $d

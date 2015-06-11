@@ -5,7 +5,7 @@ open(IS,$ARGV[1])||die;
 my $outbase = $ARGV[2];
 my %handles;
 my $i;
-my $max = 18;
+my $max = 200;
 foreach $i ((1 .. $max)){
     local *FILE;
     open(*FILE,">$outbase-$i.int.txt") || die;
@@ -20,7 +20,7 @@ $handles{-1} = *FILE;
 my %handles2;
 foreach $i ((1 .. $max)){
     local *FILE;
-    open(*FILE,">$outbase-$i.string.txt") || die;
+    open(*FILE,">$outbase-$i.string.txt") || die "can't create $outbase-$i.string.txt";
     $handles2{$i} = *FILE;
 }
 local *FILE;

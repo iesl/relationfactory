@@ -1,51 +1,49 @@
 set -e 
-trainfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
-devfile=/iesl/canvas/beroth/tac/data/candidates2009-2012
-goodfile=/home/belanger/relationfactory/stanford/annotated_sentences.tab.nr
-goodfile2=/iesl/canvas/beroth/tac/data/gold_candidates
-vocabThresh=12
-
-tb=`basename $trainfile`
-db=`basename $devfile`
-gb=`basename $goodfile`
-gb=`basename $goodfile`
 
 flip=0
 useTypes=0
 outsideWidth=0
-min_width=3
-out=$PWD/convData_s_types${useTypes}_outside_${outsideWidth}_mw_${min_width}
+min_width=4
+out=$PWD/convData_s3_types${useTypes}_outside_${outsideWidth}_mw_${min_width}_1000
 echo working in $out
 mkdir -p $out
-ot=$out/$tb
-otc=$out/$tb.cross
-od=$out/$db
-og=$out/$gb
-og2=$out/$gb2
 
-seq 1 10000000  > /tmp/seed
+trainfile=/iesl/canvas/beroth/tac/patternmatches.final.mapped
+dsfile=/iesl/canvas/beroth/tac/data/merge_2013.tab
+devfile=/iesl/canvas/beroth/tac/data/candidates2009-2012
+goodfile=/home/belanger/relationfactory/stanford/annotated_sentences.tab.nr
+goodfile2=/iesl/canvas/beroth/tac/data/gold_candidates
+goodfile3=/iesl/canvas/beroth/tac/merge_2013.tab.top100k_patterns_filtered
+goodfile4=/iesl/canvas/beroth/tac/merge_2013.tab.tuned_patterns_filtered
+testfile=/iesl/canvas/beroth/tac/runs/run20140314/candidates
+
+names=`mktemp`
+cat <<_i_ > $names
+train:$dsfile
+dev:$devfile
+stanford:$goodfile
+2012Gold:$goodfile2
+ben:$goodfile3
+ben_tuned:$goodfile4
+test:$testfile
+_i_
+
+
 echo shuffling
-shuf --random-source=/tmp/seed  $trainfile > $ot.shuff.tmp
-shuf --random-source=/tmp/seed  $devfile > $od.shuff
-shuf --random-source=/tmp/seed  $goodfile > $og.shuff
-
-
-#crossLen=`wc -l $ot.shuff.tmp | cut -d" " -f1 | xargs -ifoo expr foo / 8`
-crossLen=0
-tail -n $crossLen $ot.shuff.tmp > $otc.shuff
-
-len=`wc -l $ot.shuff.tmp | cut -d" " -f1`
-echo expr $len - $crossLen
-trainLen=`expr $len - $crossLen`
-head -n $trainLen $ot.shuff.tmp > $ot.shuff
-
-#format: <relname>\t<l/r>\t<string>
-#here, l/r=1 if arg1 comes first and 0 if they are swapped
-for f in $og $ot $otc $od 
+for n in `cat $names`
 do
-	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width > $f.argstring
+	b=`echo $n | cut -d":" -f1`
+	f=`echo $n | cut -d":" -f2`
+	shuf $f > $out/$b.shuff
 done
 
+ot=$out/train
+
+########training set specific stuff##########
+#format: <relname>\t<l/r>\t<string>
+#here, l/r=1 if arg1 comes first and 0 if they are swapped
+
+perl sliceArgStringAppend.pl $ot.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width  1000  $ot.argstring /dev/null
 
 cut -f3 $ot.argstring | tr ' ' '\n' | sort | uniq -c | sort -n -r  | sed 's|^\s*||' | perl -ne '$o = $_; /(\d*)/;  if($1 > 10){print $o;}'> $out/vocab.counts.txt
 cut -d" " -f2 $out/vocab.counts.txt > $out/vocab.txt
@@ -59,61 +57,43 @@ if [ "$flip" == 0 ]; then
 else
 	cp $out/labelMap.txt.tmp $out/labelMap.txt
 fi
-
-for f in $ot $otc $od $og
-do
-	perl mapToInts.pl $f.argstring  $out/vocab.txt $out/labelMap.txt $flip > $f.argInt
-done
-
-
-mkdir -p $out/trainSplit/
-mkdir -p $out/devSplit/
-mkdir -p $out/trainCrossSplit/
-mkdir -p $out/goodSplit/
-
-perl splitByLength.pl $ot.argInt $ot.shuff $out/trainSplit/train.
-perl splitByLength.pl $otc.argInt $otc.shuff $out/trainCrossSplit/trainCross.
-perl splitByLength.pl $od.argInt $od.shuff $out/devSplit/dev.
-perl splitByLength.pl $og.argInt $og.shuff $out/goodSplit/good.
-
-for f in $out/{train,dev,trainCross,good}Split/*.int.txt
-do 
-   outfile=`echo $f | sed 's|.txt$|.torch|'`
-   len=`basename $f .int.txt| sed 's|.*\.-||'`
-   wc -l $f
-   echo    th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
-   th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
-done
-
-
+##############################################
 
 start=$min_width
 end=`expr $min_width + 8`
 
-for name in dev trainCross good
+for n in `cat $names`
 do
-list=$out/paired.$name.FileList.txt
-rm -f $list
-for ii in `seq $start $end`
-do 
-f=$out/${name}Split/$name.-$ii.string.txt
-   outfile=`echo $f | sed 's|.txt$|.lhs|'`
-   torchfile=`echo $f | sed 's|string.txt$|int.torch|'`   
-   cat $f | cut -f1-8 > $outfile
-   echo $torchfile $outfile >> $list
+	name=`echo $n | cut -d":" -f1`
+	f=$out/$name
+	perl sliceArgStringAppend.pl $f.shuff relTypes.txt $flip $useTypes $outsideWidth $min_width 1000  $f.argstring /dev/null
+	perl mapToInts.pl $f.argstring  $out/vocab.txt $out/labelMap.txt $flip > $f.argInt
+	d=$out/${name}Split/
+	mkdir -p $d
+	perl splitByLength.pl $f.argInt $f.shuff $d/$name.
+	for f in $d/*.int.txt
+	do 
+	   outfile=`echo $f | sed 's|.txt$|.torch|'`
+   	   len=`basename $f .int.txt| sed 's|.*\.-||'`
+   	   wc -l $f
+	   echo th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
+	   th ../NLPConv/seq2torch.lua -file $f -len $len -out $outfile
+	done
+		
+	list=$out/paired.$name.FileList.txt
+	list2=$out/${name}FileList.txt
+	rm -f $list
+	rm -f $list2
+	for ii in `seq $start $end`	
+	do
+		f=$out/${name}Split/$name.-$ii.string.txt
+		outfile=`echo $f | sed 's|.txt$|.lhs|'`
+		torchfile=`echo $f | sed 's|string.txt$|int.torch|'`
+		cat $f | cut -f1-8 > $outfile
+		echo $torchfile $outfile >> $list
+		echo $torchfile >> $list2
+	done
+	
 done
-done
-cat $out/devSplit/dev.string.txt.long |  cut -f1-8  > $out/devSplit/dev.string.txt.long.lhs
 
-list=$out/trainFileList.txt
-rm -f $list
-
-goodList=$out/goodFileList.txt
-rm -f $goodList
-
-for i in `seq $start $end`
-do
-	echo $out/trainSplit/train.-$i.int.torch >> $list
-	echo $out/goodSplit/good.-$i.int.torch >> $goodList
-done
 

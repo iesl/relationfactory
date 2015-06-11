@@ -35,7 +35,7 @@ while(<I>){
     if($fields[1] == 0 && $flipLabel){
 	$queryLab = $queryLab."-reverse";
     }
-    die unless(exists $label{$queryLab});
+    die "can't find $queryLab\n" unless(exists $label{$queryLab});
     my $lab = $label{$queryLab};
     my @strs = split(" ",$fields[2]);
     my @ints = map { 

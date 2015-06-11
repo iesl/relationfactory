@@ -1,0 +1,46 @@
+f=$1
+datadir=$2
+d=$3
+
+relationFactoryPath=/home/belanger/relationfactory
+torch_path=/home/belanger/NLPConv/
+
+
+vocab=$datadir/vocab.txt
+labelMap=$datadir/labelMap.txt
+
+
+#todo: read these from a config (though odds-are they'll never change)
+flip=0
+useTypes=0
+outsideWidth=0
+min_width=4
+
+list1=$d/paired.fileList.txt
+list2=$d/fileList.txt
+rm -f $list1
+rm -f $list2
+
+perl $relationFactoryPath/sliceArgStringAppend.pl $f $relationFactoryPath/relTypes.txt $flip $useTypes $outsideWidth $min_width 1000  $d/argstring /dev/null
+echo perl $relationFactoryPath/sliceArgStringAppend.pl $f $relationFactoryPath/relTypes.txt $flip $useTypes $outsideWidth $min_width 1000  $d/argstring /dev/null
+perl $relationFactoryPath/mapToInts.pl $d/argstring  $vocab $labelMap $flip > $d/argInt
+mkdir -p $d/split/split.
+perl $relationFactoryPath/splitByLength.pl $d/argInt $f $d/split/split.
+
+for f in `find $d/split/split.*int*  -type f ! -size 0 | sort` 
+do
+	outfile=`echo $f | sed 's|.txt$|.torch|'`
+	len=`basename $f .int.txt| sed 's|.*\.-||'`
+	echo 	th $torch_path/seq2torch.lua -file $f -len $len -out $outfile
+	th $torch_path/seq2torch.lua -file $f -len $len -out $outfile
+
+	torchfile=`echo $f | sed 's|int.txt$|int.torch|'`
+
+	outfile=`echo $f | sed 's|.int.txt$|.string.lhs|'`
+	infile=`echo $f | sed 's|.int.txt$|.string.txt|'`
+
+	cat $infile | cut -f1-8 > $outfile
+	echo `readlink -e $torchfile` `readlink -e $outfile` >> $list1
+	echo `readlink -e $torchfile` >> $list2         
+done
+echo created $list1 and $list2

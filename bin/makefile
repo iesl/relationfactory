@@ -69,6 +69,10 @@ response_cuny_patterns: query_expanded.xml candidates
 response_induced_patterns: query_expanded.xml candidates
 	$(TAC_ROOT)/components/bin/induced_pattern_response.sh $+ $@
 
+# Response from shortened induced patterns.
+response_shortened_patterns: query_expanded.xml candidates
+        $(TAC_ROOT)/components/bin/shortened_pattern_response.sh $+ $@
+
 # Response from matching query name expansions.
 response_alternate_names: query_expanded.xml dtag dscore
 	$(TAC_ROOT)/components/bin/alternate_names.sh $+ $@
@@ -91,6 +95,9 @@ response_wiki: query_expanded.xml wiki_slots candidates
 
 # modules that run fast (1)
 response_fast: query_expanded.xml response_alternate_names response_classifier response_induced_patterns response_patterns
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
+response_nosvm: query_expanded.xml response_alternate_names response_induced_patterns response_patterns
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
 # Modules that have precision >~40% (2)

@@ -53,6 +53,14 @@ predictions_classifier: sfeatures
 response_classifier: query_expanded.xml predictions_classifier
 	$(TAC_ROOT)/components/bin/response.sh $+ $@
 
+
+# Neural network predictions & response.
+predictions_nn: candidates
+	$(TAC_ROOT)/components/bin/predictions_nn.sh $+ $@
+
+response_nn: query_expanded.xml predictions_classifier
+	$(TAC_ROOT)/components/bin/response.sh $+ $@
+
 # Response from pattern matches.
 response_patterns: query_expanded.xml candidates.pb
 	$(TAC_ROOT)/components/bin/pattern_response.sh $+ $@

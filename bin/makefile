@@ -58,7 +58,7 @@ response_classifier: query_expanded.xml predictions_classifier
 predictions_nn: candidates
 	$(TAC_ROOT)/components/bin/predictions_nn.sh $+ $@
 
-response_nn: query_expanded.xml predictions_classifier
+response_nn: query_expanded.xml predictions_nn
 	$(TAC_ROOT)/components/bin/response.sh $+ $@
 
 # Response from pattern matches.

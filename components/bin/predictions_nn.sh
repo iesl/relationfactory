@@ -1,12 +1,12 @@
 #!/bin/bash
 candidates=$1
 prediction=$2
-#Uses a threshold of 0.5
+threshold=`$TAC_ROOT/bin/get_config.sh nn_threshold 0.7`
 
 sh /home/belanger/NLPConv/predCmd $candidates $prediction.tmp
 
 cat $prediction.tmp \
-| awk 'BEGIN {FS="\t"} {if ($9 > 0.5) print $0}' \
+| awk -v th="$threshold" 'BEGIN {FS="\t"} {if ($9 > th) print $0}' \
 > $prediction
 
 rm $prediction.tmp

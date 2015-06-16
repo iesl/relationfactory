@@ -6,7 +6,7 @@ prediction=$2
 sh /home/belanger/NLPConv/predCmd $candidates $prediction.tmp
 
 cat $prediction.tmp \
-awk 'BEGIN {FS="\t"} {if ($9 > 0.5) print $0}' \
+| awk 'BEGIN {FS="\t"} {if ($9 > 0.5) print $0}' \
 > $prediction
 
 rm $prediction.tmp

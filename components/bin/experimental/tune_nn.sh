@@ -13,7 +13,7 @@ do
  export threshold=$param
  $TAC_ROOT/bin/run.sh $TAC_ROOT/config/tune_nn.config
  mv $rundir/response_nn_pp12 $rundir/response_nn_pp12.$param
- rm $rundir/prediction*
+ rm $rundir/predictions_nn
 done
 
 key=/iesl/canvas/beroth/tac/data/key_2009-2012

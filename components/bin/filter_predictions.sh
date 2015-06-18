@@ -1,7 +1,8 @@
 #!/bin/bash
-input=$1
-filtered=$2
-threshold=`$TAC_ROOT/bin/get_expand_config.sh nn_threshold 0.7`
+threshold_suffix=$1
+input=$2
+filtered=$3
+threshold=`$TAC_ROOT/bin/get_expand_config.sh filter_threshold$threshold_suffix 0.7`
 
 echo "Using threshold: $threshold"
 

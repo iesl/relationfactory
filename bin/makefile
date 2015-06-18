@@ -55,8 +55,11 @@ response_classifier: query_expanded.xml predictions_classifier
 
 
 # Neural network predictions & response.
-predictions_nn: candidates
+predictions_nn_raw: candidates
 	$(TAC_ROOT)/components/bin/predictions_nn.sh $+ $@
+
+predictions_nn: predictions_nn_raw
+	$(TAC_ROOT)/components/bin/filter_predictions_tuned.sh _nn  $+ $@
 
 response_nn: query_expanded.xml predictions_nn
 	$(TAC_ROOT)/components/bin/response.sh $+ $@

@@ -20,7 +20,7 @@ predictions_nn_raw: candidates
 
 
 predictions_nn: predictions_nn_raw
-	$(TAC_ROOT)/components/bin/filter_predictions.sh $+ $@
+	$(TAC_ROOT)/components/bin/filter_predictions.sh _nn $+ $@
 
 response_nn: query_expanded.xml predictions_nn
 	$(TAC_ROOT)/components/bin/response.sh $+ $@

@@ -5,6 +5,15 @@
 #
 # Author: Benjamin Roth
 
+
+candidates:
+	cp $(shell $(TAC_ROOT)/bin/get_expand_config.sh candidates) $@
+
+
+query_expanded.xml:
+	cp $(shell $(TAC_ROOT)/bin/get_expand_config.sh query_expanded) $@
+
+
 # Neural network predictions & response.
 predictions_nn_raw: candidates
 	$(TAC_ROOT)/components/bin/predictions_nn.sh $+ $@

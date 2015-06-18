@@ -3,9 +3,9 @@
 export rundir=$TAC_ROOT/runs/tune_nn
 params="0.5 0.6 0.7 0.8 0.9 0.95 1.0"
 
-mkdir -p $rundir
-cp /iesl/canvas/beroth/tac/data/candidates2009-2012 $rundir/candidates
-cp /iesl/canvas/beroth/tac/data/query_expanded_2009-2012.xml $rundir/query_expanded.xml
+#mkdir -p $rundir
+#cp /iesl/canvas/beroth/tac/data/candidates2009-2012 $rundir/candidates
+#cp /iesl/canvas/beroth/tac/data/query_expanded_2009-2012.xml $rundir/query_expanded.xml
 
 
 for param in $params

@@ -112,6 +112,10 @@ response_fast: query_expanded.xml response_alternate_names response_classifier r
 response_fast_nn: query_expanded.xml response_alternate_names response_induced_patterns response_patterns response_nn
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
+
+response_new_modules: query_expanded.xml response_alternate_names response_shortened_patterns response_patterns response_nn
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
 response_nosvm: query_expanded.xml response_alternate_names response_induced_patterns response_patterns
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 

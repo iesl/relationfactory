@@ -11,12 +11,12 @@ grep inverse $RELCONFIG \
 
 grep -f /tmp/inverses_with_tabs.tmp $candidates > $candidates_inv.tmp
 
-paste <(cut -f3 /tmp/beroth/candidates_inv.tmp) \
-<(cut -f2 /tmp/beroth/candidates_inv.tmp | sed 's#\(.*\)#\1_inv#g') \
-<(cut -f1 /tmp/beroth/candidates_inv.tmp) \
-<(cut -f4- /tmp/beroth/candidates_inv.tmp) \
+paste <(cut -f3 $candidates_inv.tmp) \
+<(cut -f2 $candidates_inv.tmp | sed 's#\(.*\)#\1_inv#g') \
+<(cut -f1 $candidates_inv.tmp) \
+<(cut -f4- $candidates_inv.tmp) \
 > $candidates_inv
 
-grep -v -f /tmp/inverses_with_tabs.tmp $candidates >> $candidates_inv
+grep -v -f inverses_with_tabs.tmp $candidates >> $candidates_inv
 
 rm inverses_with_tabs.tmp $candidates_inv.tmp

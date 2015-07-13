@@ -108,12 +108,13 @@ response_wiki: query_expanded.xml wiki_slots candidates
 response_fast: query_expanded.xml response_alternate_names response_classifier response_induced_patterns response_patterns
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
-
 response_fast_nn: query_expanded.xml response_alternate_names response_induced_patterns response_patterns response_nn
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
+response_new_modules: query_expanded.xml response_alternate_names response_shortened_patterns response_induced_patterns response_patterns response_nn
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
-response_new_modules: query_expanded.xml response_alternate_names response_shortened_patterns response_patterns response_nn
+response_shortened_patterns_plus: query_expanded.xml response_alternate_names response_classifier response_shortened_patterns response_nn response_patterns
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
 response_nosvm: query_expanded.xml response_alternate_names response_induced_patterns response_patterns
@@ -157,7 +158,7 @@ response2012: response_all_pp12
 
 # Postprocess response for 2012 format
 %_pp12: % query_expanded.xml
-	$(TAC_ROOT)/components/bin/postprocess2012.sh $+ $@
+	$(TAC_ROOT)/components/bin/postprocess.sh $+ $@
 
 
 # If Mintz feature set is used, things get a little more complicated.

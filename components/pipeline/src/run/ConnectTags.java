@@ -10,7 +10,7 @@ import java.util.*;
  */
 public class ConnectTags {
 
-  //Set<String> breakingTokens = new HashSet<String>(Arrays.asList("a", "b"));
+  static Set<String> breakingTokens = new HashSet<String>(Arrays.asList("``", "and", "''"));
 
 
   static void printConnectedTags(List<String> lines, String sentenceId, int numTokens) {
@@ -31,7 +31,7 @@ public class ConnectTags {
       if (fullTag.equals("O")) {
         // TODO: add token to queue
         tokenTagQueue.addLast(line);
-        if (token.length() == 1) {
+        if (token.length() == 1 || breakingTokens.contains(token)) {
           // break sequences with 1 character tokens ("a" "I" ":" "," ...)
           goodSequence = false;
         }

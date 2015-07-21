@@ -24,9 +24,13 @@ public class ConnectTags {
       String[] lineParts = line.split(" ");
 
       String fullTag = lineParts[1];
-      String tag = fullTag.split("-")[1];
 
-      if (fullTag.startsWith("B-")) {
+      if (fullTag.equals("O")) {
+        // TODO: add token to queue
+        tokenTagQueue.addLast(line);
+      } else if (fullTag.startsWith("B-")) {
+        String tag = fullTag.split("-")[1];
+
         String token = lineParts[0];
 
         if (tag.equals(lastTag) && tokenTagQueue.size() <= numTokens) {
@@ -48,8 +52,8 @@ public class ConnectTags {
         }
         // Queue has be written out - empty it.
         tokenTagQueue.clear();
-      } else if (fullTag.startsWith("I-")) {
-        if (tokenTagQueue.size() > 0) {
+      } else {
+        if (tokenTagQueue.size() > 0 ||  !fullTag.startsWith("I-")) {
           // If tagger did job correctly this should never happen!!! Try to handle illegal tag sequence gracefully...
           System.err.println("Illegal B-I-O tag sequence in sentence: " + sentenceId);
           for (String qLine: tokenTagQueue) {
@@ -57,15 +61,10 @@ public class ConnectTags {
           }
           tokenTagQueue.clear();
         }
-
+        String tag = fullTag.split("-")[1];
         // Write out tokens with current tag and set last tag to current tag.
         System.out.println(line);
         lastTag = tag;
-
-
-      } else if (fullTag.equals("O")) {
-        // TODO: add token to queue
-        tokenTagQueue.addLast(line);
       }
     }
     // don't forget remaining tokens

@@ -78,7 +78,7 @@ public class ConnectTags {
 
 
   public static void main(String[] args) throws IOException {
-    if (args.length != 3) {
+    if (args.length != 2) {
       System.err.println("java Candidates <input_dtag> <num_tokens>");
       System.err.println("input_dtag:    Original tagged document");
       System.err.println("num_tokens:    Two spans with the same tag are connected if there are num_tokens or fewer tokens in between.");

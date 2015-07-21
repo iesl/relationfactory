@@ -3,14 +3,14 @@ package run;
 import util.TextIdentifier;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by beroth on 7/21/15.
  */
 public class ConnectTags {
+
+  //Set<String> breakingTokens = new HashSet<String>(Arrays.asList("a", "b"));
 
 
   static void printConnectedTags(List<String> lines, String sentenceId, int numTokens) {
@@ -19,21 +19,25 @@ public class ConnectTags {
     LinkedList<String> tokenTagQueue = new LinkedList<String>();
     String lastTag = "O";
 
+    boolean goodSequence = true;
+
     for (int lineNr = 0; lineNr < lines.size(); lineNr++) {
       String line = lines.get(lineNr);
       String[] lineParts = line.split(" ");
 
       String fullTag = lineParts[1];
+      String token = lineParts[0];
 
       if (fullTag.equals("O")) {
         // TODO: add token to queue
         tokenTagQueue.addLast(line);
+        if (token.length() == 1) {
+          // break sequences with 1 character tokens ("a" "I" ":" "," ...)
+          goodSequence = false;
+        }
       } else if (fullTag.startsWith("B-")) {
         String tag = fullTag.split("-")[1];
-
-        String token = lineParts[0];
-
-        if (tag.equals(lastTag) && tokenTagQueue.size() <= numTokens) {
+        if (tag.equals(lastTag) && tokenTagQueue.size() <= numTokens && goodSequence) {
           // Case 1: connect tag spans
           // write out tokens from queue with current label
           for (String qLine: tokenTagQueue) {
@@ -52,6 +56,8 @@ public class ConnectTags {
         }
         // Queue has be written out - empty it.
         tokenTagQueue.clear();
+        goodSequence = true;
+        lastTag = tag;
       } else {
         if (tokenTagQueue.size() > 0 ||  !fullTag.startsWith("I-")) {
           // If tagger did job correctly this should never happen!!! Try to handle illegal tag sequence gracefully...
@@ -60,6 +66,7 @@ public class ConnectTags {
             System.out.println(qLine);
           }
           tokenTagQueue.clear();
+          goodSequence = true;
         }
         String tag = fullTag.split("-")[1];
         // Write out tokens with current tag and set last tag to current tag.
@@ -71,7 +78,6 @@ public class ConnectTags {
     for (String qLine: tokenTagQueue) {
       System.out.println(qLine);
     }
-    tokenTagQueue.clear();
     System.out.println("</D>");
   }
 

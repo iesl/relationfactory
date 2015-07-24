@@ -1,15 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 candidates=$1
 candidates_inv=$2
 
-RELCONFIG=`$TAC_ROOT/bin/get_expand_config.sh relations.config $TAC_ROOT/config/relations.config`
+#RELCONFIG=`$TAC_ROOT/bin/get_expand_config.sh relations.config $TAC_ROOT/config/relations.config`
+RELCONFIG=/iesl/canvas/beroth/workspace/relationfactory_iesl/config/relations_coldstart2015.config
 
 grep inverse $RELCONFIG \
 | cut -d' ' -f1 \
 | sed $'s#\(.*\)#\t\\1\t#g' \
 > inverses_with_tabs.tmp
 
-grep -f /tmp/inverses_with_tabs.tmp $candidates > $candidates_inv.tmp
+grep -f inverses_with_tabs.tmp $candidates > $candidates_inv.tmp
 
 paste <(cut -f3 $candidates_inv.tmp) \
 <(cut -f2 $candidates_inv.tmp | sed 's#\(.*\)#\1_inv#g') \

@@ -10,24 +10,19 @@ echo $MODELPATH
 
 >$PREDFILE
 
+RELCONFIG=`$TAC_ROOT/bin/get_expand_config.sh relations.config $TAC_ROOT/config/relations_coldstart2015.config`
+
 while read RELATION
 do
   echo $RELATION
+  MAPPED_RELATION=`cat $RELCONFIG | awk -v rel=$RELATION '$1 == rel && $2 =="inverse" { print $3 }'`
 
-  if [[ "$RELATION" == *_inv ]]
+  if [[ -z "$MAPPED_RELATION" ]]
   then
-   # for example:
-   # $RELATION == "gpe:headquarters_in_country_inv"
-   # $BASENAME == "gpe:headquarters_in_country"
-   # MAPPED_RELATION == "org:country_of_headquarters"
- 
-   BASENAME="${RELATION%_inv}"
-   RELCONFIG=`$TAC_ROOT/bin/get_expand_config.sh relations.config $TAC_ROOT/config/relations_coldstart2015.config` 
-   MAPPED_RELATION=`cat $RELCONFIG | awk -v bn=$BASENAME '$1 == bn && $2 =="inverse" { print $3 }'`
-
-   echo "mapped to: $MAPPED_RELATION"
-  else
    MAPPED_RELATION=$RELATION
+  else
+   RELATION=${RELATION}_inv 
+   echo "mapped to: $MAPPED_RELATION"
   fi
 
   MODEL=$MODELPATH/$MAPPED_RELATION.mdl

@@ -12,7 +12,7 @@
     <mkdir dir="${buildDir}" />
   </target>
   <target name="compile_no_experimental" depends="prepare">
-    <javac destdir="${buildDir}" debug="false" debuglevel="lines,vars,source">
+    <javac destdir="${buildDir}" debug="true" debuglevel="lines,vars,source">
       <src path="${sourceDir}" />
       <classpath>
         <fileset dir="lib">
@@ -24,7 +24,7 @@
     </javac>
   </target>
   <target name="compile" depends="prepare">
-    <javac srcdir="${sourceDir}" destdir="${buildDir}" debug="false" debuglevel="lines,vars,source">
+    <javac srcdir="${sourceDir}" destdir="${buildDir}" debug="true" debuglevel="lines,vars,source">
       <classpath>
         <fileset dir="lib">
           <include name="**/*.jar"/>

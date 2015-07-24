@@ -15,7 +15,10 @@ grep -f inverses_with_tabs.tmp $candidates > $candidates_inv.tmp
 paste <(cut -f3 $candidates_inv.tmp) \
 <(cut -f2 $candidates_inv.tmp | sed 's#\(.*\)#\1_inv#g') \
 <(cut -f1 $candidates_inv.tmp) \
-<(cut -f4- $candidates_inv.tmp) \
+<(cut -f4 $candidates_inv.tmp) \
+<(cut -f7,8 $candidates_inv.tmp) \
+<(cut -f5,6 $candidates_inv.tmp) \
+<(cut -f9- $candidates_inv.tmp) \
 > $candidates_inv
 
 grep -v -f inverses_with_tabs.tmp $candidates >> $candidates_inv

@@ -100,26 +100,29 @@ public class Indexing {
       numFilesIndexed++;
       for (CorpusDocument doc : CorpusReader.readDocuments(
           inputFile.getCanonicalPath())) {
-        org.apache.lucene.document.Document luceneDoc = 
-            new org.apache.lucene.document.Document();
-        // Index and store document id.
-        luceneDoc.add(
-            new Field(Indexing.ID, doc.getId(), Field.Store.YES, 
-                Field.Index.NOT_ANALYZED));
-        // Index and store corpus name.
-        luceneDoc.add(
-            new Field(Indexing.CORPUS, corpusName, Field.Store.YES, 
-                Field.Index.NOT_ANALYZED));
-        // Index and store filename containing this document.
-        luceneDoc.add(
-            new Field(Indexing.FILENAME, inputFile.getCanonicalPath(), 
-                Field.Store.YES, Field.Index.NOT_ANALYZED));
-        // Analyze and index document content, don't store it. 
-        luceneDoc.add(new Field(Indexing.CONTENTS, 
-            doc.getBody(),
-            Field.Store.NO, Field.Index.ANALYZED));  
-        writer.addDocument(luceneDoc);
-        numDocsIndexed += 1;
+
+        if (docIds == null || docIds.contains(doc.getId())) {
+          org.apache.lucene.document.Document luceneDoc =
+              new org.apache.lucene.document.Document();
+          // Index and store document id.
+          luceneDoc.add(
+              new Field(Indexing.ID, doc.getId(), Field.Store.YES,
+                  Field.Index.NOT_ANALYZED));
+          // Index and store corpus name.
+          luceneDoc.add(
+              new Field(Indexing.CORPUS, corpusName, Field.Store.YES,
+                  Field.Index.NOT_ANALYZED));
+          // Index and store filename containing this document.
+          luceneDoc.add(
+              new Field(Indexing.FILENAME, inputFile.getCanonicalPath(),
+                  Field.Store.YES, Field.Index.NOT_ANALYZED));
+          // Analyze and index document content, don't store it.
+          luceneDoc.add(new Field(Indexing.CONTENTS,
+              doc.getBody(),
+              Field.Store.NO, Field.Index.ANALYZED));
+          writer.addDocument(luceneDoc);
+          numDocsIndexed += 1;
+        }
         System.out.print("\rindexing... read " + numFilesIndexed + "/" 
             + inputFiles.size() + " files. Indexed " + numDocsIndexed + 
             " documents.");

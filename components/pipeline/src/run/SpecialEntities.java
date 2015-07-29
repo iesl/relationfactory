@@ -51,8 +51,16 @@ public class SpecialEntities {
             int tokSeqEnd = startInds[i + tts.numTokens];
             if (tokensCat.substring(tokSeqStart, tokSeqEnd).equals(tts.concatenated)) {
               // We have a match. Annotate tag.
+              boolean isFirst = true;
               for (int j=i; j < i + tts.numTokens; ++j) {
-                tags[j] = tts.seqTag;
+                String tag;
+                if (isFirst) {
+                  tag = "B-" + tts.seqTag;
+                  isFirst = false;
+                } else {
+                  tag = "I-" + tts.seqTag;
+                }
+                tags[j] = tag;
               }
               continue;
             }

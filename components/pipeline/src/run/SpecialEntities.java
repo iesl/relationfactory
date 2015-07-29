@@ -44,7 +44,7 @@ public class SpecialEntities {
     // 2. Annotate tags.
     for (int i = 0; i < lines.size(); i++) {
       String tok = tokens[i];
-      if (prefixTokenToTagSeqs.containsKey(tok)) {
+      if (tags[i].equals("O") && prefixTokenToTagSeqs.containsKey(tok)) {
         for (TagTokenSeq tts : prefixTokenToTagSeqs.get(tok)) {
           if (startInds.length > i + tts.numTokens) {
             int tokSeqStart = startInds[i];

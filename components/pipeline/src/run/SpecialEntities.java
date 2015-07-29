@@ -46,14 +46,16 @@ public class SpecialEntities {
       String tok = tokens[i];
       if (prefixTokenToTagSeqs.containsKey(tok)) {
         for (TagTokenSeq tts : prefixTokenToTagSeqs.get(tok)) {
-          int tokSeqStart = startInds[i];
-          int tokSeqEnd = startInds[i + tts.numTokens];
-          if (tokensCat.substring(tokSeqStart, tokSeqEnd).equals(tts.concatenated)) {
-            // We have a match. Annotate tag.
-            for (int j=i; j < i + tts.numTokens; ++j) {
-              tags[j] = tts.seqTag;
+          if (startInds.length > i + tts.numTokens) {
+            int tokSeqStart = startInds[i];
+            int tokSeqEnd = startInds[i + tts.numTokens];
+            if (tokensCat.substring(tokSeqStart, tokSeqEnd).equals(tts.concatenated)) {
+              // We have a match. Annotate tag.
+              for (int j=i; j < i + tts.numTokens; ++j) {
+                tags[j] = tts.seqTag;
+              }
+              continue;
             }
-            continue;
           }
         }
       }

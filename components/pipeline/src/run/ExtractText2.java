@@ -31,26 +31,28 @@ public class ExtractText2 {
     
     for (String filename : dscoreFile.getPaths()) {
       for (CorpusDocument doc : CorpusReader.readDocuments(filename)) {
-        for (DscoreEntry entry : dscoreFile.getByDocId(doc.getId())) {
-          TextIdentifier docQueryId = new TextIdentifier(entry.docid, 
-              entry.qid, null, null);
-          out.write("#" + docQueryId.toValidString() + "\n");
-          // TODO: log written query ids.
-          logger.info("extracting doc: " + entry.docid);
-          if (docQueryId.getQueryId() == null || entry.docid.isEmpty()) {
-            logger.error("incorrect query id:" + docQueryId.toString() + "\n for file: " + filename);
+        if (dscoreFile.getDocIds().contains(doc.getId())) {
+          for (DscoreEntry entry : dscoreFile.getByDocId(doc.getId())) {
+            TextIdentifier docQueryId = new TextIdentifier(entry.docid,
+                entry.qid, null, null);
+            out.write("#" + docQueryId.toValidString() + "\n");
+            // TODO: log written query ids.
+            logger.info("extracting doc: " + entry.docid);
+            if (docQueryId.getQueryId() == null || entry.docid.isEmpty()) {
+              logger.error("incorrect query id:" + docQueryId.toString() + "\n for file: " + filename);
+            }
+            if (!doc.getTitle().isEmpty()) {
+              out.write(doc.getTitle().replaceFirst("^#+", "") + "\n\n");
+            }
+            Pattern p = Pattern.compile("^#+", Pattern.MULTILINE);
+            java.util.regex.Matcher m = p.matcher(doc.getBody());
+            StringBuffer sb = new StringBuffer();
+            while(m.find()) {
+              m.appendReplacement(sb, "");
+            }
+            m.appendTail(sb);
+            out.write(sb + "\n");
           }
-          if (!doc.getTitle().isEmpty()) {
-            out.write(doc.getTitle().replaceFirst("^#+", "") + "\n\n");
-          }
-          Pattern p = Pattern.compile("^#+", Pattern.MULTILINE);
-          java.util.regex.Matcher m = p.matcher(doc.getBody());
-          StringBuffer sb = new StringBuffer(); 
-          while(m.find()) {
-            m.appendReplacement(sb, "");
-          } 
-          m.appendTail(sb); 
-          out.write(sb + "\n");
         }
       }
     }

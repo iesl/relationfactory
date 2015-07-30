@@ -24,6 +24,6 @@ cd $rundir
 pwd
 
 cp -v $makefile makefile
-TAC_CONFIG=$config make $goal
+TAC_CONFIG=$config make -j4 $goal
 
 cd -

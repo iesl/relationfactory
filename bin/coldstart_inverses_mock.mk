@@ -9,84 +9,87 @@
 
 # copies query.xml from location specified in config file
 hop1_query.xml:
-	cp $(shell $(TAC_ROOT)/bin/get_expand_config.sh query.xml) $@
+	touch $@
 
 # Adds expansiond to original queries and explicitly lists relations.
 %_query_expanded.xml: %_query.xml
-	$(TAC_ROOT)/components/bin/expand_query.sh $+ $@
+	touch $@
 
 index:
-	$(TAC_ROOT)/components/bin/create_index.sh $@
+	touch $@
 
 hop2_query.xml: hop1_query.xml hop1_response_fast_pp14_noNIL
-	/home/beroth/canvas/workspace/tackbp2014/bin/CS-GenerateQueries.pl hop1_query.xml hop2_query.xml hop1_response_fast_pp14_noNIL
+	touch $@
 
 # Retrieves ranked list document ids/files.
 %_dscore: %_query_expanded.xml index
-	$(TAC_ROOT)/components/bin/retrieve_using_index.sh $+ $@
+	touch $@
 
 # Tokenizes/splits sentences from retrieved docs.
 %_drank: %_query_expanded.xml %_dscore
-	$(TAC_ROOT)/components/bin/split_sentences2.sh $+ $@
+	touch $@
 
 # Tags sentences.
 %_dtag: %_drank
-	$(TAC_ROOT)/components/bin/tagging.sh $+ $@
+	touch $@
 
 # Candidates from sentences where Query string and tags match.
 %_candidates: %_query_expanded.xml %_dtag %_dscore
-	$(TAC_ROOT)/components/bin/candidates2013.sh $+ $@
+	touch $@
 
 %_candidates_inv: %_candidates
-	$(TAC_ROOT)/components/bin/invert_candidates.sh $+ $@
+	touch $@
 %_candidates_inv.pb: %_candidates_inv
-	$(TAC_ROOT)/components/bin/cands_to_proto.sh $+ $@
+	touch $@
 %_sfeatures_inv: %_candidates_inv.pb
-	$(TAC_ROOT)/components/bin/sfeatures.sh $+ $@
+	touch $@
 %_predictions_classifier_inv: %_sfeatures_inv
-	$(TAC_ROOT)/components/bin/predictions_inverses.sh $+ $@
+	touch $@
 %_predictions_classifier: %_predictions_classifier_inv
-	$(TAC_ROOT)/components/bin/undo_invert_predictions.sh $+ $@
+	touch $@
 
 # Converts candidates into protocol-buffer format.
 %_candidates.pb: %_candidates
-	$(TAC_ROOT)/components/bin/cands_to_proto.sh $+ $@
+	touch $@
 
 # Extracts features on a per-sentence level.
 %_sfeatures: %_candidates.pb
-	$(TAC_ROOT)/components/bin/sfeatures.sh $+ $@
+	touch $@
 
 # Generates TAC-response with 'lsv' team id.
 %_response_classifier: %_query_expanded.xml %_predictions_classifier
-	$(TAC_ROOT)/components/bin/response.sh $+ $@
+	touch $@
 
 # Response from pattern matches.
 %_response_patterns: %_query_expanded.xml %_candidates.pb
-	$(TAC_ROOT)/components/bin/pattern_response.sh $+ $@
+	touch $@
 
 # Response from induced patterns.
 %_response_induced_patterns: %_query_expanded.xml %_candidates
-	$(TAC_ROOT)/components/bin/induced_pattern_response.sh $+ $@
+	touch $@
 
 # Response from shortened induced patterns.
 %_response_shortened_patterns: %_query_expanded.xml %_candidates
-	$(TAC_ROOT)/components/bin/shortened_pattern_response.sh $+ $@
+	touch $@
 
 # Response from matching query name expansions.
 %_response_alternate_names: %_query_expanded.xml %_dtag %_dscore
-	$(TAC_ROOT)/components/bin/alternate_names.sh $+ $@
+	touch $@
 
 # modules that run fast (1)
 %_response_fast: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_induced_patterns %_response_patterns
-	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+	touch $@
 
-#%_response_shortened_patterns_plus: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_induced_patterns %_response_patterns
-#	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+%_response_shortened_patterns_plus: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_induced_patterns %_response_patterns
+	touch $@
+
 #response_nosvm: query_expanded.xml response_alternate_names response_induced_patterns response_patterns
 #	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
 # Modules that have precision >~40% (2)
 #response_prec: query_expanded.xml response_alternate_names response_dependency_patterns response_induced_patterns response_patterns
 #	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
 # Modules that do not include manual patterns. Wiki response is also excluded, as it uses manual patterns, too.
 #response_nomanual: query_expanded.xml response_alternate_names response_classifier response_induced_patterns
 #	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
@@ -99,32 +102,21 @@ hop2_query.xml: hop1_query.xml hop1_response_fast_pp14_noNIL
 #	cp -v $< $@
 
 # Postprocess response for 2014 format.
-hop1_%_pp14: hop1_% hop1_query_expanded.xml /dev/null
-	$(TAC_ROOT)/components/bin/postprocess2014.sh $+ $@
+%_pp14: % query_expanded.xml /dev/null
+	touch $@
 
-hop2_%_pp14: hop2_% hop2_query_expanded.xml /dev/null
-	$(TAC_ROOT)/components/bin/postprocess2014.sh $+ $@
 
 %_noNIL: %
-	grep -v NIL $+ | sed '/\&amp;/! s/\&/\&amp;/g' > $@
+	touch $@
 
 # Template for postprocessing responses for 2013 format
 %_pp13: % query_expanded.xml /dev/null
-	$(TAC_ROOT)/components/bin/postprocess2013.sh $+ $@
+	touch $@
 
 
 # Postprocess response for 2012 format
 %_pp12: % query_expanded.xml
-	$(TAC_ROOT)/components/bin/postprocess.sh $+ $@
-
-response_packaged: hop1_query.xml hop1_response_fast_pp14_noNIL hop2_response_fast_pp14_noNIL
-	$(TAC_ROOT)/components/bin/package_kb.sh $+ $@
-
-response_validated: response_packaged hop1_query.xml
-	$(TAC_ROOT)/components/bin/validate_kb.sh $+ $@
-
-scores: response_validated hop1_query.xml
-	$(TAC_ROOT)/evaluation/bin/score_kb.sh $+ $@
+	touch $@
 
 ### 2013 submission runs ###
 

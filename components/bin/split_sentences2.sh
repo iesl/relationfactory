@@ -16,6 +16,12 @@ DSCORE=$2
 DRANK=$3
 SEG_HOME=$TAC_ROOT/components/sentence_segmentation
 
+#cp $1 $1.copy
+#echo "FILTERING OUT LINES WITH ERRORS:"
+#grep -P -n "[\x80-\xFF]" $1.copy
+#grep -P -v "[\x80-\xFF]" $1.copy > $1
+
+
 export PERL5LIB="$SEG_HOME/src" # split.pl needs this
 
 # Benchmarks (1000 docs):

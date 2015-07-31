@@ -9,13 +9,13 @@ set -e
 
 SPECIALENT=$TAC_ROOT/resources/special_NE_list/
 
-## Convert to pure CoNLL format
-#echo "$TAC_ROOT/components/ner/bin/tac-conll to-conll $1 > $1.conll.tmp"
-#$TAC_ROOT/components/ner/bin/tac-conll to-conll $1 > $1.conll.tmp
+# Convert to pure CoNLL format
+echo "$TAC_ROOT/components/ner/bin/tac-conll to-conll $1 > $1.conll.tmp"
+$TAC_ROOT/components/ner/bin/tac-conll to-conll $1 > $1.conll.tmp
 
-#echo "cat $1.conll.tmp | $TAC_ROOT/components/ner/lib/sequor/bin/seminer en > $1.sequor.tmp"
-## Run tagger
-#cat $1.conll.tmp | $TAC_ROOT/components/ner/lib/sequor/bin/seminer en > $1.sequor.tmp
+echo "cat $1.conll.tmp | $TAC_ROOT/components/ner/lib/sequor/bin/seminer en > $1.sequor.tmp"
+# Run tagger
+cat $1.conll.tmp | $TAC_ROOT/components/ner/lib/sequor/bin/seminer en > $1.sequor.tmp
 
 echo "Tagging special entities."
 # Add special entities

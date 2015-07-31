@@ -11,6 +11,6 @@ rm -f response_packaged
 
 pwd
 
-echo "$TAC_ROOT/evaluation/bin/CS-PackageOutput.pl -docs $docs $queryfile $round1file $round2file $outputfile"
+echo "/opt/perl/bin/perl5.14.2 $TAC_ROOT/evaluation/bin/CS-PackageOutput.pl -docs $docs $queryfile $round1file $round2file $outputfile"
 
-$TAC_ROOT/evaluation/bin/CS-PackageOutput.pl -docs $docs $queryfile $round1file $round2file $outputfile
+/opt/perl/bin/perl5.14.2 $TAC_ROOT/evaluation/bin/CS-PackageOutput.pl -docs $docs $queryfile $round1file $round2file $outputfile

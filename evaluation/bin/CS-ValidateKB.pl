@@ -18,7 +18,7 @@ binmode(STDOUT, ":utf8");
 # For usage, run with no arguments
 ##################################################################################### 
 
-my $version = "3.2";		# The Version 3.0 series is for the 2014 task
+my $version = "4.2";
 
 ##################################################################################### 
 # Priority for the selection of problem locations
@@ -31,7 +31,16 @@ my %use_priority = (
   OBJECT  => 4,
 );  
 
+##################################################################################### 
+# Mapping from output type to export routine
+##################################################################################### 
 
+my %type2export = (
+  tac => \&export_tac,
+  edl => \&export_edl,
+);
+
+my $output_formats = "[" . join(", ", sort keys %type2export) . ", none]";
 
 ##################################################################################### 
 # Default values
@@ -57,7 +66,7 @@ my $error_output = *STDERR{IO};
 ##################################################################################### 
 
 
-##################################################################################### 
+#####################################################################################
 # Reporting Problems
 #####################################################################################
 
@@ -74,70 +83,72 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 # ----------                   ----     -------------
 
 ########## Provenance Errors
-  ILLEGAL_DOCID                ERROR    DOCID %s is not a valid DOCID for this task
-  ILLEGAL_OFFSET               ERROR    %s is not a valid offset
-  ILLEGAL_OFFSET_IN_DOC        ERROR    %s is not a valid offset for DOCID %s
-  ILLEGAL_OFFSET_PAIR          ERROR    (%s, %s) is not a valid offset pair
-  ILLEGAL_OFFSET_PAIR_STRING   ERROR    %s is not a valid offset pair string
-  ILLEGAL_OFFSET_TRIPLE_STRING ERROR    %s is not a valid docid/offset pair string
-  TOO_MANY_PROVENANCE_TRIPLES  WARNING  Too many provenance triples (%d) provided; only the first %d will be used
-  TOO_MANY_CHARS               WARNING  Provenance contains too many characters; only the first %d will be used
-  TOO_MANY_TOTAL_CHARS         ERROR    All provenance strings contain a total of more than %d characters
+  ILLEGAL_DOCID                 ERROR    DOCID %s is not a valid DOCID for this task
+  ILLEGAL_OFFSET                ERROR    %s is not a valid offset
+  ILLEGAL_OFFSET_IN_DOC         ERROR    %s is not a valid offset for DOCID %s
+  ILLEGAL_OFFSET_PAIR           ERROR    (%s, %s) is not a valid offset pair
+  ILLEGAL_OFFSET_PAIR_STRING    ERROR    %s is not a valid offset pair string
+  ILLEGAL_OFFSET_TRIPLE_STRING  ERROR    %s is not a valid docid/offset pair string
+  TOO_MANY_PROVENANCE_TRIPLES   WARNING  Too many provenance triples (%d) provided; only the first %d will be used
+  TOO_MANY_CHARS                WARNING  Provenance contains too many characters; only the first %d will be used
+  TOO_MANY_TOTAL_CHARS          ERROR    All provenance strings contain a total of more than %d characters
 
 ########## Knowledge Base Errors
-  AMBIGUOUS_PREDICATE          ERROR    %s: ambiguous predicate
-  COLON_OMITTED                WARNING  Initial colon omitted from name of entity %s
-  DUPLICATE_ASSERTION          WARNING  The same assertion is made more than once (%s)
-  ILLEGAL_CONFIDENCE_VALUE     ERROR    Illegal confidence value: %s
-  ILLEGAL_ENTITY_NAME          ERROR    Illegal entity name: %s
-  ILLEGAL_ENTITY_TYPE          ERROR    Illegal entity type: %s
-  ILLEGAL_PREDICATE            ERROR    Illegal predicate: %s
-  ILLEGAL_PREDICATE_TYPE       ERROR    Illegal predicate type: %s
-  MISSING_CANONICAL            WARNING  Entity %s has no canonical mention in document %s
-  MISSING_INVERSE              WARNING  No inverse relation asserted for %s(%s, %s)
-  MISSING_RUNID                ERROR    The first line of the file does not contain a legal runid
-  MISSING_TYPEDEF              WARNING  No type asserted for Entity %s
-  MULTIPLE_CANONICAL           ERROR    More than one canonical mention for Entity %s in document %s
-  MULTIPLE_FILLS_ENTITY        WARNING  Entity %s has multiple %s fills, but should be single-valued
-  MULTITYPED_ENTITY            ERROR    Entity %s has more than one type: %s
-  NO_MENTIONS                  WARNING  Entity %s has no mentions
-# OVERLAPPING_MENTIONS         ERROR    Overlapping mentions at positions %s and %s in document %s
-  PREDICATE_ALIAS              WARNING  Use of %s predicate; %s replaced with %s
-  STRING_USED_FOR_ENTITY       ERROR    Expecting an entity, but got string %s
-  SUBJECT_PREDICATE_MISMATCH   ERROR    Type of subject (%s) does not match type of predicate (%s)
-  UNASSERTED_MENTION           WARNING  Failed to assert that %s in document %s is also a mention
-  UNATTESTED_RELATION_ENTITY   ERROR    Relation %s uses entity %s, but that entity is has no mentions in provenance %s
-  UNQUOTED_STRING              WARNING  String %s not surrounded by double quotes
-  UNKNOWN_TYPE                 ERROR    Cannot infer type for Entity %s
+  AMBIGUOUS_PREDICATE           ERROR    %s: ambiguous predicate
+  COLON_OMITTED                 WARNING  Initial colon omitted from name of entity %s
+  DUPLICATE_ASSERTION           WARNING  The same assertion is made more than once (%s)
+  ILLEGAL_CONFIDENCE_VALUE      ERROR    Illegal confidence value: %s
+  ILLEGAL_ENTITY_NAME           ERROR    Illegal entity name: %s
+  ILLEGAL_ENTITY_TYPE           ERROR    Illegal entity type: %s
+  ILLEGAL_PREDICATE             ERROR    Illegal predicate: %s
+  ILLEGAL_PREDICATE_TYPE        ERROR    Illegal predicate type: %s
+  MISSING_CANONICAL             WARNING  Entity %s has no canonical mention in document %s
+  MISSING_INVERSE               WARNING  No inverse relation asserted for %s(%s, %s)
+  MISSING_RUNID                 ERROR    The first line of the file does not contain a legal runid
+  MISSING_TYPEDEF               WARNING  No type asserted for Entity %s
+  MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Entity %s in document %s
+  MULTIPLE_FILLS_ENTITY         WARNING  Entity %s has multiple %s fills, but should be single-valued
+  MULTIPLE_LINKS                WARNING  More than one link from entity %s to KB %s
+  MULTITYPED_ENTITY             ERROR    Entity %s has more than one type: %s
+  NO_MENTIONS                   WARNING  Entity %s has no mentions
+  PREDICATE_ALIAS               WARNING  Use of %s predicate; %s replaced with %s
+  STRING_USED_FOR_ENTITY        ERROR    Expecting an entity, but got string %s
+  SUBJECT_PREDICATE_MISMATCH    ERROR    Type of subject (%s) does not match type of predicate (%s)
+  UNASSERTED_MENTION            WARNING  Failed to assert that %s in document %s is also a mention
+  UNATTESTED_RELATION_ENTITY    ERROR    Relation %s uses entity %s, but that entity id has no mentions in provenance %s
+  UNQUOTED_STRING               WARNING  String %s not surrounded by double quotes
+  UNKNOWN_TYPE                  ERROR    Cannot infer type for Entity %s
 
 ########## Query File Errors
-  DUPLICATE_QUERY              WARNING  Duplicate query ID %s
-  DUPLICATE_QUERY_FIELD        WARNING  Duplicate <%s> tag
-  MALFORMED_QUERY              ERROR    Malformed query
-  MISMATCHED_TAGS              WARNING  <%s> tag closed with </%s>
-  MISSING_QUERY_FIELD          ERROR    Missing <%s> tag in query %s
-  NO_QUERIES_LOADED            WARNING  No queries found
-  QUERY_WITHOUT_LOADED_PARENT  ERROR    Query %s has parent %s that was not loaded
-  UNKNOWN_QUERY_FIELD          WARNING  <%s> is not a recognized query field
-  UNLOADED_QUERY               WARNING  Query %s is not present in the query files; skipping it
+  DUPLICATE_QUERY               WARNING  Duplicate query ID %s
+  DUPLICATE_QUERY_FIELD         WARNING  Duplicate <%s> tag
+  MALFORMED_QUERY               ERROR    Malformed query %s
+  MISMATCHED_TAGS               WARNING  <%s> tag closed with </%s>
+  MISSING_QUERY_FIELD           ERROR    Missing <%s> tag in query %s
+  NO_QUERIES_LOADED             WARNING  No queries found
+  QUERY_WITHOUT_LOADED_PARENT   ERROR    Query %s has parent %s that was not loaded
+  UNKNOWN_QUERY_FIELD           WARNING  <%s> is not a recognized query field
+  UNLOADED_QUERY                WARNING  Query %s is not present in the query files; skipping it
 
 ########## Submission File/Assessment File Errors
-  MISMATCHED_RUNID             WARNING  Round 1 uses runid %s but Round 2 uses runid %s; selecting the former
-  MULTIPLE_FILLS_SLOT          WARNING  Multiple responses given to single-valued slot %s
-  MULTIPLE_RUNIDS              WARNING  File contains multiple run IDs (%s, %s)
-  UNKNOWN_QUERY_ID             ERROR    Unknown query: %s
-  UNKNOWN_RESPONSE_FILE_TYPE   FATAL_ERROR %s is not a known response file type
-  UNKNOWN_SLOT_NAME            ERROR    Unknown slot name: %s
-  
+  MISMATCHED_RUNID              WARNING  Round 1 uses runid %s but Round 2 uses runid %s; selecting the former
+  MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
+  MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
+  MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
+  UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
+  UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
+  UNKNOWN_SLOT_NAME             ERROR    Unknown slot name: %s
+  WRONG_SLOT_NAME               WARNING  Slot %s is not the requested slot for query %s (expected %s)
+
 ########## Multi-Use Errors
-  WRONG_NUM_ENTRIES            ERROR    Wrong number of entries on line (expected %d, got %d)
+  WRONG_NUM_ENTRIES             ERROR    Wrong number of entries on line (expected %d, got %d)
 
 END_PROBLEM_FORMATS
 
 
-##################################################################################### 
+#####################################################################################
 # Logger
-##################################################################################### 
+#####################################################################################
 
 package Logger;
 
@@ -176,6 +187,20 @@ sub ignore_warning {
   $self->NIST_die("Unknown warning: $warning") unless $self->{FORMATS}{$warning};
   $self->NIST_die("$warning is a fatal error; cannot ignore it") unless $self->{FORMATS}{$warning}{TYPE} eq 'WARNING';
   $self->{IGNORE_WARNINGS}{$warning}++;
+}
+
+# Just use the ignore_warning mechanism to delete errors, but don't enforce the warnings-only edict
+sub delete_error {
+  my ($self, $error) = @_;
+  $self->NIST_die("Unknown error: $error") unless $self->{FORMATS}{$error};
+  $self->{IGNORE_WARNINGS}{$error}++;
+}
+
+# Is a particular error being ignored?
+sub is_ignored {
+  my ($self, $warning) = @_;
+  $self->NIST_die("Unknown error: $warning") unless $self->{FORMATS}{$warning};
+  $self->{IGNORE_WARNINGS}{$warning};
 }
 
 # Remember that a particular problem was encountered, for later reporting
@@ -267,20 +292,24 @@ sub get_error_type {
   $self->{FORMATS}{$error_name}{TYPE};
 }
 
+# NIST submission scripts demand an error code of 255 on failure
 my $NIST_error_code = 255;
 
 sub NIST_die {
   my ($self, @messages) = @_;
   my $outfile = $self->{ERROR_OUTPUT};
+  print $outfile "================================================================\n";
+  print $outfile Carp::longmess();
+  print $outfile "================================================================\n";
   print $outfile join("", @messages), " at (", join(":", caller), ")\n";
   exit $NIST_error_code;
 }
 
 package main;
 
-##################################################################################### 
+#####################################################################################
 # Patterns
-##################################################################################### 
+#####################################################################################
 
 package main;
 
@@ -310,14 +339,13 @@ our $comment_pattern = qr/
 
 package main;
 
-##################################################################################### 
+#####################################################################################
 # Provenance
-##################################################################################### 
+#####################################################################################
 
 package Provenance;
 
-# Bounds
-
+# Bounds from "Task Description for English Slot Filling at TAC-KBP 2014"
 my $max_chars_per_triple = 150;
 my $max_total_chars = 600;
 my $max_triples = 4;
@@ -329,7 +357,8 @@ my $max_triples = 4;
     $docids = $_[0];
   }
 
-  # Validate a particular docid/offset-pair entry
+  # Validate a particular docid/offset-pair entry. Return the updated
+  # start/end pair in case it has been updated
   sub check_triple {
     my ($logger, $where, $docid, $start, $end) = @_;
     my %checks;
@@ -337,7 +366,7 @@ my $max_triples = 4;
     # NO_DOCUMENT. Return failure, but don't report it (as the
     # underlying error has already been reported)
     return if $docid eq 'NO_DOCUMENT';
-    
+
     if ($start !~ /^\d+$/) {
       $logger->record_problem('ILLEGAL_OFFSET', $start, $where);
       $checks{START} = $logger->get_error_type('ILLEGAL_OFFSET');
@@ -345,7 +374,7 @@ my $max_triples = 4;
     if ($end !~ /^\d+$/) {
       $logger->record_problem('ILLEGAL_OFFSET', $end, $where);
       $checks{END} = $logger->get_error_type('ILLEGAL_OFFSET');
-    } 
+    }
     if (defined $docids && !$docids->{$docid}) {
       $logger->record_problem('ILLEGAL_DOCID', $docid, $where);
       $checks{DOCID} = $logger->get_error_type('ILLEGAL_DOCID');
@@ -381,7 +410,7 @@ my $max_triples = 4;
     foreach (values %checks) {
       return if $_ eq 'ERROR';
     }
-    return 'passed';
+    return($start, $end);
   }
 }
 
@@ -389,9 +418,10 @@ my $max_triples = 4;
 # representing the provenance for use in construction of a UUID
 sub tostring {
   my ($self) = @_;
-#print STDERR "tostring called from ", join(":", caller), "\n";
   join(",", map {"$_->{DOCID}:$_->{START}-$_->{END}"}
-       sort {$a->{DOCID} cmp $b->{DOCID} || $a->{START} <=> $b->{START} || $a->{END} cmp $b->{END}}
+       sort {$a->{DOCID} cmp $b->{DOCID} ||
+	     $a->{START} <=> $b->{START} ||
+	     $a->{END} cmp $b->{END}}
        @{$self->{TRIPLES}});
 }
 
@@ -407,13 +437,11 @@ sub new {
   my $self = {LOGGER => $logger, TRIPLES => [], WHERE => $where};
   my $total = 0;
   if ($type eq 'EMPTY') {
-#print STDERR "====> empty\n";
     # DO NOTHING
   }
   elsif ($type eq 'DOCID_OFFSET_OFFSET') {
-#print STDERR "====> doo\n";
     my ($docid, $start, $end) = @values;
-    if (&check_triple($logger, $where, $docid, $start, $end)) {
+    if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
       push(@{$self->{TRIPLES}}, {DOCID => $docid,
 				 START => $start,
 				 END => $end,
@@ -422,7 +450,6 @@ sub new {
     }
   }
   elsif ($type eq 'DOCID_OFFSETPAIRLIST') {
-#print STDERR "====> dopl\n";
     my ($docid, $offset_pair_list) = @values;
     my $start;
     my $end;
@@ -432,7 +459,7 @@ sub new {
 	$start = 0;
 	$end = 0;
       }
-      if (&check_triple($logger, $where, $docid, $start, $end)) {
+      if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
 	push(@{$self->{TRIPLES}}, {DOCID => $docid,
 				   START => $start,
 				   END => $end,
@@ -445,11 +472,11 @@ sub new {
     }
   }
   elsif ($type eq 'PROVENANCETRIPLELIST') {
-#print STDERR "====> ptl\n";
     my ($triple_list) = @values;
     my @triple_list = split(/,/, $triple_list);
     if (@triple_list > $max_triples) {
-      $logger->record_problem('TOO_MANY_PROVENANCE_TRIPLES', scalar @triple_list, $max_triples, $where);
+      $logger->record_problem('TOO_MANY_PROVENANCE_TRIPLES',
+			      scalar @triple_list, $max_triples, $where);
       $#triple_list = $max_triples - 1;
     }
     foreach my $triple (@triple_list) {
@@ -462,8 +489,7 @@ sub new {
 	$start = 0;
 	$end = 0;
       }
-      if (&check_triple($logger, $where, $docid, $start, $end)) {
-#print STDERR "($docid, $start, $end) passed\n";
+      if (($start, $end) = &check_triple($logger, $where, $docid, $start, $end)) {
 	push(@{$self->{TRIPLES}}, {DOCID => $docid,
 				   START => $start,
 				   END => $end,
@@ -508,9 +534,9 @@ sub get_num_entries {
 
 package main;
 
-###############################################################################################################
+#####################################################################################
 ##### Predicates
-###############################################################################################################
+#####################################################################################
 
 ########################################################################################
 # This table lists the legal predicates. An asterisk means the relation is single-valued
@@ -581,11 +607,12 @@ my $predicates_spec = <<'END_PREDICATES';
   PER,ORG,GPE    mention                          STRING       none
   PER,ORG,GPE    canonical_mention                STRING       none
   PER,ORG,GPE    type                             TYPE         none
+  PER,ORG,GPE    link                             STRING       none
 END_PREDICATES
 
-##################################################################################### 
+#####################################################################################
 # This table lists known aliases of the legal predicates.
-##################################################################################### 
+#####################################################################################
 
 my $predicate_aliases = <<'END_ALIASES';
 # REASON        DOMAIN    ALIAS                               MAPS TO
@@ -610,8 +637,7 @@ my $predicate_aliases = <<'END_ALIASES';
   MISSPELLED    PER       titles                              title
 END_ALIASES
 
-
-package Predicates;
+package PredicateSet;
 
 # Populate the set of predicate aliases from $predicate_aliases (defined at the top of this file)
 my %predicate_aliases;
@@ -660,7 +686,7 @@ sub lookup_predicate {
   @candidates;
 }
 
-# Create a new Predicates object
+# Create a new PredicateSet object
 sub new {
   my ($class, $logger, $label, $spec) = @_;
   $label = 'TAC' unless defined $label;
@@ -697,7 +723,8 @@ sub add_predicate {
 # Find the correct predicate name for this (verb, subject, object)
 # triple, performing a variety of error checks
 sub get_predicate {
-  # The source appears as the last argument passed; preceding arguments are not necessarily present
+  # The source appears as the last argument passed; preceding
+  # arguments are not necessarily present
   my $source = pop(@_);
   my ($self, $verb, $subject_type, $object_type) = @_;
   return $verb if ref $verb;
@@ -708,16 +735,19 @@ sub get_predicate {
   if ($verb =~ /^(.*?):(.*)$/) {
     $domain_string = lc $1;
     $verb = $2;
-    unless($Predicates::legal_domain_types{$domain_string}) {
+    unless($PredicateSet::legal_domain_types{$domain_string}) {
       $self->{LOGGER}->record_problem('ILLEGAL_PREDICATE_TYPE', $domain_string, $source);
       return;
     }
   }
   if (defined $domain_string &&
       defined $subject_type &&
-      $Predicates::legal_domain_types{$subject_type} &&
+      $PredicateSet::legal_domain_types{$subject_type} &&
       $domain_string ne $subject_type) {
-    $self->{LOGGER}->record_problem('SUBJECT_PREDICATE_MISMATCH', $subject_type, $domain_string, $source);
+    $self->{LOGGER}->record_problem('SUBJECT_PREDICATE_MISMATCH',
+				    $subject_type,
+				    $domain_string,
+				    $source);
     return;
   }
   $verb = $self->rewrite_predicate($verb, $domain_string || $subject_type || 'any', $source);
@@ -734,9 +764,14 @@ sub get_predicate {
 # Rewrite this predicate name if it is an alias
 sub rewrite_predicate {
   my ($self, $predicate, $domain, $source) = @_;
-  my $alias = $predicate_aliases{lc $domain}{$predicate} || $predicate_aliases{'any'}{$predicate};
+  my $alias = $predicate_aliases{lc $domain}{$predicate} ||
+              $predicate_aliases{'any'}{$predicate};
   return $predicate unless defined $alias;
-  $self->{LOGGER}->record_problem('PREDICATE_ALIAS', $alias->{REASON}, $predicate, $alias->{REPLACEMENT}, $source);
+  $self->{LOGGER}->record_problem('PREDICATE_ALIAS',
+				  $alias->{REASON},
+				  $predicate,
+				  $alias->{REPLACEMENT},
+				  $source);
   $alias->{REPLACEMENT};
 }
 
@@ -745,18 +780,20 @@ sub load {
   my ($self, $filename) = @_;
   my $base_filename = $filename;
   $base_filename =~ s/.*\///;
-  $self->{LOGGER}->NIST_die("Filename for predicates files should be <label>.predicates.txt") unless $base_filename =~ /^(\w+)\.predicates.txt$/;
+  $self->{LOGGER}->NIST_die("Filename for predicates files should be <label>.predicates.txt")
+    unless $base_filename =~ /^(\w+)\.predicates.txt$/;
   my $label = uc $1;
-  open(my $infile, "<:utf8", $filename) or $self->{LOGGER}->NIST_die("Could not open $filename: $!");
+  open(my $infile, "<:utf8", $filename)
+    or $self->{LOGGER}->NIST_die("Could not open $filename: $!");
   local($/);
   my $predicates = <$infile>;
   close $infile;
   $self->add_predicates($label, $predicates);
 }
 
-##################################################################################### 
+#####################################################################################
 # Predicate
-##################################################################################### 
+#####################################################################################
 
 package Predicate;
 
@@ -767,12 +804,14 @@ sub new {
   my $domain = {map {$_ => 'true'} split(/,/, lc $domain_string)};
   # Make sure each type is legal
   foreach my $type (keys %{$domain}) {
-    $predicates->{LOGGER}->NIST_die("Illegal domain type: $type") unless $Predicates::legal_domain_types{$type};
+    $predicates->{LOGGER}->NIST_die("Illegal domain type: $type")
+      unless $PredicateSet::legal_domain_types{$type};
   }
   # Do the same for the range
   my $range = {map {$_ => 'true'} split(/,/, lc $range_string)};
   foreach my $type (keys %{$range}) {
-    $predicates->{LOGGER}->NIST_die("Illegal range type: $type") unless $Predicates::legal_range_types{$type};
+    $predicates->{LOGGER}->NIST_die("Illegal range type: $type")
+      unless $PredicateSet::legal_range_types{$type};
   }
   my $name = $original_name;
   my $inverse_name = $original_inverse_name;
@@ -790,17 +829,24 @@ sub new {
   # If this predicate has already been defined, make sure that
   # definition is compatible with the current one, then return it
   my @predicates = $predicates->lookup_predicate($name, $domain, $range);
-  $predicates->{LOGGER}->NIST_die("More than one predicate defined for $name($domain_string, $range_string)") if @predicates > 1;
+  $predicates->{LOGGER}->NIST_die("More than one predicate defined for " .
+				  "$name($domain_string, $range_string)")
+    if @predicates > 1;
   my $predicate;
   if (@predicates) {
     $predicate = $predicates[0];
     my $current_inverse_name = $predicate->get_inverse_name();
-    $predicates->{LOGGER}->NIST_die("Attempt to redefine inverse of predicate $domain_string:$name from $current_inverse_name to $inverse_name")
+    $predicates->{LOGGER}->NIST_die("Attempt to redefine inverse of predicate " .
+				    "$domain_string:$name from $current_inverse_name " .
+				    "to $inverse_name")
       unless $current_inverse_name eq $inverse_name;
-    $predicates->{LOGGER}->NIST_die("Attempt to redefine quantity of predicate $domain_string:$name from $predicate->{QUANTITY} to $quantity")
+    $predicates->{LOGGER}->NIST_die("Attempt to redefine quantity of predicate " .
+				    "$domain_string:$name from $predicate->{QUANTITY} " .
+				    "to $quantity")
 	unless $predicate->{QUANTITY} eq $quantity;
     my @inverses = $predicates->lookup_predicate($inverse_name, $range, $domain);
-    $predicates->{LOGGER}->NIST_die("Multiple inverses with form $inverse_name($range_string, $domain_string)")
+    $predicates->{LOGGER}->NIST_die("Multiple inverses with form " .
+				    "$inverse_name($range_string, $domain_string)")
       if (@inverses > 1);
     if (@inverses) {
       my $current_inverse = $inverses[0];
@@ -820,7 +866,9 @@ sub new {
   # Save the new predicate in $predicates
   $predicates->add_predicate($predicate);
   # Automatically generate the inverse predicate
-  $predicate->{INVERSE} = $class->new($predicates, $range_string, $original_inverse_name, $domain_string, $original_name, $label)
+  $predicate->{INVERSE} = $class->new($predicates, $range_string,
+				      $original_inverse_name, $domain_string,
+				      $original_name, $label)
     unless $inverse_name eq 'none';
   $predicate;
 }
@@ -840,13 +888,13 @@ package main;
 my $terminalWidth = 80;
 
 
-##################################################################################### 
+#####################################################################################
 # This switch processing code written many years ago by James Mayfield
 # and used here with permission. It really has nothing to do with
 # TAC KBP; it's just a partial replacement for getopt that closely ties
 # the documentation to the switch specification. The code may well be cheesy,
 # so no peeking.
-##################################################################################### 
+#####################################################################################
 
 package SwitchProcessor;
 
@@ -1442,6 +1490,19 @@ package main;
 # This is not really a KB per se, because we have to be resilient to errors in the input
 package KB;
 
+# A KB contains the following fields:
+#  ASSERTIONS0	- All assertions
+#  ASSERTIONS1	- Assertions indexed by subject
+#  ASSERTIONS2	- Assertions indexed by subject and verb
+#  ASSERTIONS3	- Assertions indexed by subject, verb and object
+#  DOCIDS	- Assertions indexed by subject, verb and docid
+#  ENTITIES	- Maps from entity name to entity structure
+#  LOGGER	- Logger object for reporting errors and traces
+#  MENTIONS	- Mention assertions indexed by docid
+#  PREDICATES	- PredicateSet object
+#  RUNID	- Run ID of the KB file this KB was built from
+#  RUNID_LINE	- Entire line from which RUNID was extracted, including comments
+
 # Create a new empty KB
 sub new {
   my ($class, $logger, $predicates) = @_;
@@ -1510,7 +1571,7 @@ sub entity_typedef {
   }
   $type = lc $type;
   # Only legal types may be asserted
-  unless ($Predicates::legal_domain_types{$type}) {
+  unless ($PredicateSet::legal_domain_types{$type}) {
     $kb->{LOGGER}->record_problem('ILLEGAL_ENTITY_TYPE', $type, $source);
     return;
   }
@@ -1553,7 +1614,7 @@ sub add_assertion {
   return unless defined $subject_entity;
   $subject = $subject_entity->{NAME};
   my $subject_type = $kb->get_entity_type($subject_entity);
-  $subject_type = undef unless $Predicates::legal_domain_types{$subject_type};
+  $subject_type = undef unless $PredicateSet::legal_domain_types{$subject_type};
   my $object_entity;
   my $predicate = $kb->{PREDICATES}->get_predicate($verb, $subject_type, $source);
   return unless ref $predicate;
@@ -1563,19 +1624,23 @@ sub add_assertion {
     $kb->entity_use($subject_entity, 'TYPEDEF', $source);
     $kb->entity_typedef($subject_entity, $object, 'TYPEDEF', $source);
   }
+  elsif ($verb eq 'link') {
+    # FIXME
+  }
   else {
     $kb->entity_use($subject_entity, 'SUBJECT', $source);
     $kb->entity_typedef($subject_entity, $predicate->get_domain(), 'SUBJECT', $source);
-    if (&Predicates::is_compatible('string', $predicate->get_range())) {
+    if (&PredicateSet::is_compatible('string', $predicate->get_range())) {
       # Make sure this is a properly double quoted string
       unless ($object =~ /^"(?>(?:(?>[^"\\]+)|\\.)*)"$/) {
 	# If not, complain and stick double quotes around it
+	# FIXME: Need to quote internal quotes; use String::Escape
 	$kb->{LOGGER}->record_problem('UNQUOTED_STRING', $object, $source);
 	$object =~ s/(["\\])/\\$1/g;
 	$object = "\"$object\"";
       }
     }
-    if (&Predicates::is_compatible($predicate->get_range(), \%Predicates::legal_entity_types)) {
+    if (&PredicateSet::is_compatible($predicate->get_range(), \%PredicateSet::legal_entity_types)) {
       $object_entity = $kb->intern($object, $source);
       return unless defined $object_entity;
       $object = $object_entity->{NAME};
@@ -1585,7 +1650,7 @@ sub add_assertion {
   }
   # Check for duplicate assertions
   my $is_duplicate_of;
-  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type') {
+  unless ($verb eq 'mention' || $verb eq 'canonical_mention' || $verb eq 'type' || $verb eq 'link') {
   existing:
     # We don't consider inferred assertions to be duplicates
     foreach my $existing (grep {!$_->{INFERRED}} $kb->get_assertions($subject, $verb, $object)) {
@@ -1776,7 +1841,7 @@ sub assert_inverses {
   my ($kb) = @_;
   foreach my $assertion ($kb->get_assertions()) {
     next unless ref $assertion->{PREDICATE};
-    next unless &Predicates::is_compatible($assertion->{PREDICATE}{RANGE}, \%Predicates::legal_entity_types);
+    next unless &PredicateSet::is_compatible($assertion->{PREDICATE}{RANGE}, \%PredicateSet::legal_entity_types);
     unless ($kb->get_assertions($assertion->{OBJECT}, $assertion->{PREDICATE}{INVERSE_NAME}, $assertion->{SUBJECT})) {
       $kb->{LOGGER}->record_problem('MISSING_INVERSE', $assertion->{PREDICATE}->get_name(),
 			    $assertion->{SUBJECT}, $assertion->{OBJECT}, $assertion->{SOURCE});
@@ -1852,15 +1917,22 @@ sub check_confidence {
   }
 }
 
+my @do_not_check_endpoints = qw(
+  type
+  mention
+  canonical_mention
+  link
+);
+
+my %do_not_check_endpoints = map {$_ => $_} @do_not_check_endpoints;
+
 # Each endpoint of a relation that is an entity must be attested in
 # a document that attests to the relation
 sub check_relation_endpoints {
   my ($kb) = @_;
   foreach my $assertion ($kb->get_assertions()) {
     next unless ref $assertion->{PREDICATE};
-    next if $assertion->{PREDICATE}{NAME} eq 'type';
-    next if $assertion->{PREDICATE}{NAME} eq 'mention';
-    next if $assertion->{PREDICATE}{NAME} eq 'canonical_mention';
+    next if $do_not_check_endpoints{$assertion->{PREDICATE}{NAME}};
     my $provenance = $assertion->{PROVENANCE};
     my $num_provenance_entries = $provenance->get_num_entries();
     if (defined $assertion->{SUBJECT_ENTITY}) {
@@ -1977,7 +2049,7 @@ sub load_tac {
     # Now assign the entries to the appropriate fields
     my ($subject, $predicate, $object, $provenance_string) = @entries;
     my $provenance;
-    if (lc $predicate eq 'type') {
+    if (lc $predicate eq 'type' || lc $predicate eq 'link') {
       unless (@entries == 3) {
 	$kb->{LOGGER}->record_problem('WRONG_NUM_ENTRIES', 3, scalar @entries, $source);
 	next;
@@ -1995,13 +2067,16 @@ sub load_tac {
   }
   close $infile;
   $kb->check_integrity();
+#&main::dump_structure($kb, 'KB', [qw(LOGGER CONFIDENCE LABEL QUANTITY BESTDEF BESTUSE TYPEDEFS USES COMMENT INVERSE_NAME SOURCE WHERE DOMAIN RANGE)]);
+#exit 0;
   $kb;
 }
 
 # When outputting TAC format, place assertions in a particular order
 sub get_assertion_priority {
   my ($name) = @_;
-  return 2 if $name eq 'type';
+  return 3 if $name eq 'type';
+  return 2 if $name eq 'link';
   return 1 if $name eq 'mention' || $name eq 'canonical_mention';
   return 0;
 }
@@ -2033,7 +2108,8 @@ sub export_tac {
     my $domain_string = "";
     if ($predicate_string ne 'type' &&
 	$predicate_string ne 'mention' &&
-	$predicate_string ne 'canonical_mention') {
+	$predicate_string ne 'canonical_mention' &&
+	$predicate_string ne 'link') {
       $domain_string = $kb->get_entity_type($assertion->{SUBJECT_ENTITY});
       next if $domain_string eq 'unknown';
       next if $domain_string eq 'multiple';
@@ -2047,6 +2123,58 @@ sub export_tac {
   }
 }
 
+# EDL format is a tab-separated file with the following columns:
+#  1. System run ID
+#  2. Mention ID
+#  3. Mention head string
+#  4. Provenance
+#  5. KBID or NIL
+#  6. Entity type (GPE, ORG, PER, LOC, FAC)
+#  7. Mention type (NAM, NOM)
+#  8. Confidence value
+
+sub export_edl {
+  my ($kb) = @_;
+  # Collect type information
+  my %entity2type;
+  my %entity2link;
+  my $next_nilnum = "0001";
+  foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
+    next if $assertion->{OMIT_FROM_OUTPUT};
+    # Only output assertions that have fully resolved predicates
+    next unless ref $assertion->{PREDICATE};
+    my $predicate_string = $assertion->{PREDICATE}{NAME};
+    if ($predicate_string eq 'type') {
+      $entity2type{$assertion->{SUBJECT}} = $assertion->{OBJECT};
+      $entity2link{$assertion->{SUBJECT}} = $next_nilnum++ unless $entity2link{$assertion->{SUBJECT}};
+    }
+    elsif ($predicate_string eq 'link') {
+      # FIXME: Ensure only one link relation
+      $entity2link{$assertion->{SUBJECT}} = $assertion->{OBJECT};
+    }
+  }
+  my $next_mentionid = "M00001";
+  foreach my $assertion (sort assertion_comparator $kb->get_assertions()) {
+    next if $assertion->{OMIT_FROM_OUTPUT};
+    # Only output assertions that have fully resolved predicates
+    next unless ref $assertion->{PREDICATE};
+    my $predicate_string = $assertion->{PREDICATE}{NAME};
+    my $domain_string = "";
+    next unless $predicate_string eq 'mention';
+    my $runid = $kb->{RUNID};
+    my $mention_id = $next_mentionid++;
+    my $mention_string = $assertion->{OBJECT};
+    my $provenance = $assertion->{PROVENANCE}->tooriginalstring();
+    my $kbid = "NIL_$entity2link{$assertion->{SUBJECT}}";
+    my $entity_type = $entity2type{$assertion->{SUBJECT}};
+    my $mention_type = "NAM";
+    my $confidence = $assertion->{CONFIDENCE};
+    print $program_output join("\t", $runid, $mention_id, $mention_string,
+			             $provenance, $kbid, $entity_type,
+			             $mention_type, $confidence), "\n";
+  }
+}
+
 ##################################################################################### 
 # Runtime switches and main program
 ##################################################################################### 
@@ -2056,8 +2184,11 @@ my $switches = SwitchProcessor->new($0, "Validate a TAC Cold Start KB file, chec
 				    "");
 $switches->addHelpSwitch("help", "Show help");
 $switches->addHelpSwitch("h", undef);
-$switches->addVarSwitch('output_file', "Specify a file to which output should be redirected; omit to perform error checking only");
-$switches->put('output_file', 'none');
+$switches->addVarSwitch('output_file', "Specify a file to which output should be redirected");
+$switches->put('output_file', 'STDOUT');
+$switches->addVarSwitch("output", "Specify the output format. Legal formats are $output_formats." .
+		                  " Use 'none' to perform error checking with no output.");
+$switches->put("output", 'none');
 $switches->addVarSwitch('error_file', "Specify a file to which error output should be redirected");
 $switches->put('error_file', "STDERR");
 $switches->addVarSwitch("predicates", "File containing specification of additional predicates to allow");
@@ -2102,7 +2233,11 @@ else {
 
 my $logger = Logger->new(undef, $error_output);
 
-my $predicates = Predicates->new($logger);
+my $output_mode = lc $switches->get('output');
+$logger->NIST_die("Unknown output mode: $output_mode") unless $type2export{$output_mode} || $output_mode eq 'none';
+my $output_fn = $type2export{$output_mode};
+
+my $predicates = PredicateSet->new($logger);
 
 # The input file to process
 my $filename = $switches->get("filename");
@@ -2161,8 +2296,8 @@ if ($num_errors) {
 else {
   print $error_output ($num_warnings || 'No'), " warning", ($num_warnings == 1 ? '' : 's'), " encountered\n";
   # Output the KB if so desired
-  if ($program_output) {
-    &export_tac($kb, \%output_labels);
+  if ($output_fn) {
+    &{$output_fn}($kb, \%output_labels);
   }
 }
 
@@ -2185,7 +2320,6 @@ exit 0;
 #     - Ensured that if a relation is omitted from the output, its inverse is too
 # 1.3 - Added binmode(STDOUT, ":utf8"); to avoid wide character errors
 #
-#
 # 2.0 - Updated for TAC 2013
 #     - per:employee_or_member_of
 #     - New offset specifications (no longer pairs)
@@ -2196,5 +2330,9 @@ exit 0;
 #     - Completely refactored
 # 3.1 - Minor refactoring to help support other scripts
 # 3.2 - Ensured all program exits are NIST-compliant
+#
+# 4.0 - First version on GitHub
+# 4.1 - Added export in EDL format
+# 4.2 - Fixed bug in which LINK relations were receiving a leading entity type
 
 1;

@@ -77,7 +77,7 @@ hop2_query.xml: hop1_query.xml hop1_response_fast_pp14_noNIL
 	$(TAC_ROOT)/components/bin/alternate_names.sh $+ $@
 
 # modules that run fast (1)
-%_response_fast: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_induced_patterns %_response_patterns
+%_response_fast: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_patterns
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
 #%_response_shortened_patterns_plus: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_induced_patterns %_response_patterns
@@ -107,7 +107,7 @@ hop2_%_pp14: hop2_% hop2_query_expanded.xml /dev/null
 
 %_noNIL: %
 	$(TAC_ROOT)/components/bin/response_cs_sf.sh $+ $@
-#	grep -v NIL $+ | sed '/\&amp;/! s/\&/\&amp;/g' | iconv -c -f UTF-8 -t ASCII > $@
+#	grep -v NIL $+ | sed '/\&amp;/! s/\&/\&amp;/g' > $@
 
 # Template for postprocessing responses for 2013 format
 %_pp13: % query_expanded.xml /dev/null

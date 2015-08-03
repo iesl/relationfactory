@@ -332,6 +332,7 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
   MISSING_TYPEDEF               WARNING  No type asserted for Entity %s
   MULTIPLE_CANONICAL            ERROR    More than one canonical mention for Entity %s in document %s
   MULTIPLE_FILLS_ENTITY         WARNING  Entity %s has multiple %s fills, but should be single-valued
+  MULTIPLE_LINKS                WARNING  More than one link from entity %s to KB %s
   MULTITYPED_ENTITY             ERROR    Entity %s has more than one type: %s
   NO_MENTIONS                   WARNING  Entity %s has no mentions
   PREDICATE_ALIAS               WARNING  Use of %s predicate; %s replaced with %s
@@ -355,13 +356,13 @@ my $problem_formats = <<'END_PROBLEM_FORMATS';
 
 ########## Submission File/Assessment File Errors
   MISMATCHED_RUNID              WARNING  Round 1 uses runid %s but Round 2 uses runid %s; selecting the former
+  MULTIPLE_CORRECT_GROUND_TRUTH WARNING  More than one correct choice for ground truth for query %s
   MULTIPLE_FILLS_SLOT           WARNING  Multiple responses given to single-valued slot %s
   MULTIPLE_RUNIDS               WARNING  File contains multiple run IDs (%s, %s)
   UNKNOWN_QUERY_ID              ERROR    Unknown query: %s
-  UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR %s is not a known response file type
+  UNKNOWN_RESPONSE_FILE_TYPE    FATAL_ERROR  %s is not a known response file type
   UNKNOWN_SLOT_NAME             ERROR    Unknown slot name: %s
   WRONG_SLOT_NAME               WARNING  Slot %s is not the requested slot for query %s (expected %s)
-  MULTIPLE_CORRECT_GROUND_TRUTH WARNING More than one correct choice for ground truth for query %s
 
 ########## Multi-Use Errors
   WRONG_NUM_ENTRIES             ERROR    Wrong number of entries on line (expected %d, got %d)
@@ -798,6 +799,7 @@ my $predicates_spec = <<'END_PREDICATES';
   PER,ORG,GPE    mention                          STRING       none
   PER,ORG,GPE    canonical_mention                STRING       none
   PER,ORG,GPE    type                             TYPE         none
+  PER,ORG,GPE    link                             STRING       none
 END_PREDICATES
 
 #####################################################################################
@@ -1398,6 +1400,7 @@ sub add {
 # Find the query with the provided query ID
 sub get {
   my ($self, $queryid) = @_;
+$self->{LOGGER}->NIST_die() unless defined $queryid;
   $self->{QUERIES}{$queryid};
 }
 
@@ -1476,103 +1479,6 @@ my %correctness_map = (
 # over the years. This table specifies each such format, and allows
 # code that calculates or normalizes fields
 my %schemas = (
-  '2012submissions' => {
-    YEAR => 2012,
-    TYPE => 'SUBMISSION',
-    SAMPLES => ["01284_78128269	CS_ENG_000_00	NIL	org:employees	PENN_SAS_ENG_24177	DEAN	203	206	259	403",
-	       ],
-    COLUMNS => [qw(
-      ID
-      QUERY_AND_HOP
-      PARENT_ID
-      SLOT_NAME
-      DOCID
-      VALUE
-      OBJECT_OFFSET_START
-      OBJECT_OFFSET_END
-      PREDICATE_OFFSET_START
-      PREDICATE_OFFSET_END
-    )],
-  },
-
-  '2012assessments' => {
-    YEAR => 2012,
-    TYPE => 'ASSESSMENT',
-    SAMPLES => ["T03357	CS_ENG_000_01	T00784	per:title	PENN_SAS_ENG_07905	dean	1354	1357	1329	1626	1	3	CS_ENG_000_entity2",
-	       ],
-    COLUMNS => [qw(
-      ID
-      QUERY_AND_HOP
-      PARENT_ID
-      SLOT_NAME
-      DOCID
-      VALUE
-      OBJECT_OFFSET_START
-      OBJECT_OFFSET_END
-      PREDICATE_OFFSET_START
-      PREDICATE_OFFSET_END
-      VALUE_ASSESSMENT
-      RELATION_ASSESSMENT
-      VALUE_EC
-    )],
-    COLUMN_TO_JUDGE => 'OBJECT_ASSESSMENT',
-    ASSESSMENT_CODES => {
-      '-1' => 'WRONG',
-       '1' => 'CORRECT',
-       '3' => 'INEXACT',
-       '4' => 'NOT_ASSESSED',
-    },
-  },
-
-  '2013submissions' => {
-    YEAR => 2013,
-    TYPE => 'SUBMISSION',
-    SAMPLES => ["0000085	CS13_ENG_001_00	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	John Lofgren	223-234	223-234	223-336",
-		"0003967	CS13_ENG_001_PSEUDO_02	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	director	260-267	223-234	223-336",
-	       ],
-    COLUMNS => [qw(
-      ID
-      QUERY_AND_HOP
-      DOCID
-      PARENT_ID
-      VALUE
-      OBJECT_OFFSETS
-      SUBJECT_OFFSETS
-      PREDICATE_OFFSETS
-    )],
-  },
-
-  '2013assessments' => {
-    YEAR => 2013,
-    TYPE => 'ASSESSMENT',
-    SAMPLES => ["0000085	CS13_ENG_001_00	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	John Lofgren	223-234	223-234	223-336	C	W	L	C	2",
-		"0003967	CS13_ENG_001_PSEUDO_02	1334360640-319fafbb063007185528cf40af76e4bc	QUERY	director	260-267	223-234	223-336	C	C	C	C	2",
-	       ],
-    COLUMNS => [qw(
-      ID
-      QUERY_AND_HOP
-      DOCID
-      PARENT_ID
-      VALUE
-      OBJECT_OFFSETS
-      SUBJECT_OFFSETS
-      PREDICATE_OFFSETS
-      OBJECT_ASSESSMENT
-      SUBJECT_ASSESSMENT
-      RELATION_ASSESSMENT
-      VALUE_ASSESSMENT
-      VALUE_EC
-    )],
-    COLUMN_TO_JUDGE => 'VALUE_ASSESSMENT',
-    ASSESSMENT_CODES => {
-      C => 'CORRECT',
-      W => 'WRONG',
-      X => 'INEXACT',
-      I => 'IGNORE',
-      S => 'INEXACT_SHORT',
-      L => 'INEXACT_LONG',
-    },
-  },
   '2014SFsubmissions' => {
     YEAR => 2014,
     TYPE => 'SUBMISSION',
@@ -1990,10 +1896,11 @@ my %columns = (
       unless ($query) {
 #	$logger->record_problem('UNLOADED_QUERY', $entry->{QUERY_ID}, $where);
 	# FIXME: die here?
+    	# Add the query corresponding to this entry to the set of queries
+    	$query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
+    	$queries->add($query, $entry->{QUERY});	
       }
-      else {
-	$entry->{TARGET_QUERY} = $query;
-      }
+	  $entry->{TARGET_QUERY} = $query;
     },
     DEPENDENCIES => [qw(TARGET_QUERY_ID)],
     REQUIRED => 'ALL',
@@ -2042,12 +1949,6 @@ my %columns = (
     YEARS => [2012, 2013, 2014],
     PATTERN => $anything_pattern,
   },
-
-  # VALUE_EC_NORMALIZED => {
-  #   DESCRIPTION => "Equivalence class for this value/provenance pair, guaranteed to be of the form QID{:\d+}+",
-  #   YEARS => [2012, 2013, 2014],
-  #   REQUIRED => 'ASSESSMENT',
-  #   DEPENDENCIES => [qw(VALUE_EC 
 
   VALUE_PROVENANCE => {
     DESCRIPTION => "Where the VALUE was found in the document collection",
@@ -2151,67 +2052,6 @@ sub identify_file_type {
   $logger->NIST_die("Empty file: $filename");
 }
 
-#####################################################################
-# FIXME: The following patches are in place solely for the original #
-# release of the 2014 assessments. When updated assessments are     #
-# released by LDC, these patches should probably be removed.        #
-#####################################################################
-
-# A UTF-8 encoding error caused a few anomalies in the 2014 assessment
-# data; they are corrected by the entries in this table. Necessitates
-# use of 'use utf8' at the top of this file
-my %fix_utf8 = (
-  "Blaise CompaorÃ©" => "Blaise Compaoré",
-  "Ahmet ErtegÃ¼n" =>   "Ahmet Ertegün",
-  "Janet MurguÃ­a" =>   "Janet Murguía",
-);
-
-# A few of the original assessment entries are inconsistent; this repairs them
-my %repairs = (
-
-  # Don't conflate MP and representative
-  #002066	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	XIN_ENG_20100822.0023:613-760	MP	XIN_ENG_20100822.0023:747-748	C	C	2
-  '002067	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:420-569	representative	AFP_ENG_20100830.0294:488-501	C	C	2' =>
-  '002067	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:420-569	representative	AFP_ENG_20100830.0294:488-501	C	C	3',
-  '002068	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:421-568	representative	AFP_ENG_20100830.0294:488-501	C	C	2' =>
-  '002068	CS14_ENG_199_db93190d-f793-3aba-a56d-74e38915589f:per:title	AFP_ENG_20100830.0294:421-568	representative	AFP_ENG_20100830.0294:488-501	C	C	3',
-
-  # In other places, 'fellow' and 'research fellow' are not conflated
-  #001631	CS14_ENG_157_249a707e-bee6-360e-8e13-eaf6cf9a4f95:per:title	XIN_ENG_20090929.0273:2794-2885	fellow	XIN_ENG_20090929.0273:2809-2814	C	C	1
-  '001632	CS14_ENG_157_249a707e-bee6-360e-8e13-eaf6cf9a4f95:per:title	AFP_ENG_20100110.0351:3219-3319	research fellow	AFP_ENG_20100110.0351:3238-3252	C	C	1' =>
-  '001632	CS14_ENG_157_249a707e-bee6-360e-8e13-eaf6cf9a4f95:per:title	AFP_ENG_20100110.0351:3219-3319	research fellow	AFP_ENG_20100110.0351:3238-3252	C	C	3',
-
-  # Ken Pollack and Kenneth Pollack should be conflated
-  #002187	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	eng-NG-31-131701-8426151:2809-2862	Ken Pollack	eng-NG-31-131701-8426151:2809-2819	C	C	34
-  '002191	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	eng-NG-31-126841-8221710:444-482,eng-NG-31-142265-10040928:1464-1507,eng-NG-31-142265-8693536:1463-1506,eng-NG-31-151724-8810400:1521-1564	Kenneth Pollack	eng-NG-31-151724-8810400:1521-1535	C	L	36' =>
-  '002191	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	eng-NG-31-126841-8221710:444-482,eng-NG-31-142265-10040928:1464-1507,eng-NG-31-142265-8693536:1463-1506,eng-NG-31-151724-8810400:1521-1564	Kenneth Pollack	eng-NG-31-151724-8810400:1521-1535	C	L	34',
-
-  # Conflate Billy and Billy A.
-  #002226	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	APW_ENG_20101116.0207:3602-3658,APW_ENG_20101116.0207:3624-3658,XIN_ENG_20100512.0269:3526-3620,XIN_ENG_20100611.0178:641-713	William A. Galston	APW_ENG_20101116.0207:3214-3231	C	L	58
-  '002229	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	NYT_ENG_20090928.0180:2837-2880,NYT_ENG_20100218.0167:4637-4680,WPB_ENG_20100922.0073:4776-4820,XIN_ENG_20101027.0256:4109-4152	William Galston	NYT_ENG_20090928.0180:2837-2851	C	L	61' =>
-  '002229	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	NYT_ENG_20090928.0180:2837-2880,NYT_ENG_20100218.0167:4637-4680,WPB_ENG_20100922.0073:4776-4820,XIN_ENG_20101027.0256:4109-4152	William Galston	NYT_ENG_20090928.0180:2837-2851	C	L	58',
-
-  # Conflate Bill and Bill H.
-  #002227	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	NYT_ENG_20100917.0015:3728-3783,WPB_ENG_20100611.0066:2331-2386,WPB_ENG_20101214.0095:2190-2230,WPB_ENG_20101223.0018:3597-3652	William Frey	WPB_ENG_20101214.0095:2190-2201	C	L	59
-  '002230	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	APW_ENG_20101214.0641:835-874,LTW_ENG_20091224.0051:1817-1858,NYT_ENG_20091027.0123:3655-3694	William H. Frey	NYT_ENG_20091027.0123:3655-3669	C	S	62' =>
-  '002230	CS14_ENG_203_645a1602-2395-3e1c-9133-08bd2fd7a293:org:employees_or_members	APW_ENG_20101214.0641:835-874,LTW_ENG_20091224.0051:1817-1858,NYT_ENG_20091027.0123:3655-3694	William H. Frey	NYT_ENG_20091027.0123:3655-3669	C	S	59',
-
-  # Current inconsistency in judgments
-  #000767  CS14_ENG_099_439f0e71-3388-3890-a09d-79e699a3a5f8:per:title	eng-NG-31-138596-9810529:3460-3605	spokesman	eng-NG-31-138596-9810529:3527-3535	C	C	1
-  '000776	CS14_ENG_099_6252fd06-ab6c-3b1b-88a1-e8f6b01082e4:per:title	eng-NG-31-138596-9810529:3460-3605	spokesman	eng-NG-31-138596-9810529:3527-3535	X	L	0' =>
-  '000776	CS14_ENG_099_6252fd06-ab6c-3b1b-88a1-e8f6b01082e4:per:title	eng-NG-31-138596-9810529:3460-3605	spokesman	eng-NG-31-138596-9810529:3527-3535	C	C	2',
-
-  # Current inconsistency in judgments
-  #000896  CS14_ENG_117_4ab1e67e-6ac0-3d83-a3b5-ea90266166b3:per:title     XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922     executive       XIN_ENG_20100526.0378:914-922   C       S       4
-  '000916	CS14_ENG_117_5f8e2951-0ad9-3e1c-8cdb-8b3bb865518f:per:title	XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922	executive	XIN_ENG_20100526.0378:914-922	X	S	0' =>
-  '000916	CS14_ENG_117_5f8e2951-0ad9-3e1c-8cdb-8b3bb865518f:per:title	XIN_ENG_20100526.0378:914-922,XIN_ENG_20100526.0378:914-922	executive	XIN_ENG_20100526.0378:914-922	C	S	5',
-
-);
-
-#####################################################################
-# END patches                                                       #
-#####################################################################
-
 # Generate a slot filler if the slot is required and does not currently have a value.
 sub generate_slot {
   my ($logger, $where, $queries, $schema, $entry, $slot) = @_;
@@ -2238,9 +2078,6 @@ sub load {
   my $columns = $schema->{COLUMNS};
   while (<$infile>) {
     chomp;
-    # Repair known problems in the assessment files
-    my $repair = $repairs{$_};
-    $_ = $repair if defined $repair;
     # Kill carriage returns (FIXME: We might need to replace them with
     # \ns in some strange Microsoft future)
     s/\r//gs;
@@ -2265,9 +2102,6 @@ sub load {
     $entry->{LINENUM} = $.;
     $entry->{SCHEMA} = $schema;
     $entry->{COMMENT} = $comment;
-
-    my $replacement = $fix_utf8{$entry->{VALUE}};
-    $entry->{VALUE} = $replacement if defined $replacement;
 
     # Remember the year and type of the entry
     $entry->{YEAR} = $schema->{YEAR};
@@ -2310,8 +2144,8 @@ sub load {
     push(@{$self->{ALL_ENTRIES}}, $entry);
 
     # Add the query corresponding to this entry to the set of queries
-    my $new_query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
-    $queries->add($new_query, $entry->{QUERY});
+    #my $new_query = $entry->{QUERY}->generate_query($entry->{VALUE}, $entry->{VALUE_PROVENANCE});
+    #$queries->add($new_query, $entry->{QUERY});
   }
   close $infile;
 }
@@ -2475,9 +2309,10 @@ sub score_query {
   my $ectree = EquivalenceClassTree->new($self->{LOGGER}, $self, @{$self->{ENTRIES_BY_QUERY_ID_BASE}{ASSESSMENT}{$query_id_base}});
   foreach my $submission (grep {$_->{RUNID} eq $runid}
 			  @{$self->{ENTRIES_BY_QUERY_ID_BASE}{SUBMISSION}{$query_id_base}}) {
+    my ($ground_truth, $discipline_used) = $self->get_ground_truth_for_submission($submission, $discipline);
     $ectree->add_submission($submission,
 			    $self->entry2ec($submission),
-			    $self->get_ground_truth_for_submission($submission, $discipline));
+			    $ground_truth);
   }
   $ectree->score($runid);
   $ectree->get_all_scores();
@@ -2631,6 +2466,21 @@ sub add_assessments {
     $node->{QUANTITY} = $assessment->{TARGET_QUERY}{QUANTITY} unless $node->{QUANTITY};
     # Remember the appropriate tree node in the assessment
     $assessment->{EC_TREE} = $node;
+    # Check assessment file for entries that have equivalence class without correct parent entry
+    if ($assessment->{JUDGMENT} eq "CORRECT") {
+print STDERR "node = {", join(", ", map {"$_ => " . ($node->{$_} || 'UNDEF')} sort keys %{$node}), "}\n" unless defined $node->{NAME};
+      my $ec = $node->{NAME};
+      my @ec_components = split(/:/, $ec);
+      my $base_query_id = shift @ec_components;
+      if (@ec_components > 1) {
+	my $parent_ec = $base_query_id;
+	pop @ec_components;
+	$parent_ec .= ":". join( ":", @ec_components) if @ec_components;
+	my $parent_ectree = $self->get($parent_ec);
+	$self->{LOGGER}->NIST_die("Equivalence class without correct parent entry:\n\t$assessment->{LINE}\n")
+	  unless grep {$_->{JUDGMENT} eq "CORRECT"} @{$parent_ectree->{ASSESSMENTS}};
+      }
+    }
   }
 }
 
@@ -2714,7 +2564,6 @@ sub score_subtree {
   $score->put('LEVEL', $level);
   # Ground truth is the number of distinct ECs, or one if this is a single-valued field
   my $num_ground_truth = grep {!$subtree->{ECS}{$_}{BIN_IS_INCORRECT}} keys %{$subtree->{ECS}};
-  # FIXME: Why whouldn't QUANTITY be defined?
   $num_ground_truth = 1 if defined $subtree->{QUANTITY} && $subtree->{QUANTITY} eq 'single' && $num_ground_truth > 1;
   my $num_wrong = 0;
   my $num_correct = 0;
@@ -2732,8 +2581,9 @@ sub score_subtree {
     }
     # Otherwise the first submission is correct, and the rest are redundant
     elsif ($num_submissions) {
-      # FIXME: Aren't these guaranteed to be correct if the bin is correct?
-      my $num_correct_submissions = grep {$_->{ASSESSMENT}{JUDGMENT} eq 'CORRECT'} @{$subtree->{ECS}{$ec}{SUBMISSIONS} || []};
+      # Check for correctness of path in addition to simply checking corresponding assessment for correctness
+      my $num_correct_submissions = $self->get_correct_submissions($ec); 
+         
       $ec_num_wrong += $num_submissions - $num_correct_submissions;
       if ($num_correct_submissions > 1) {
 	$ec_num_redundant += $num_correct_submissions - 1;
@@ -2757,6 +2607,42 @@ sub score_subtree {
   $score->put('NUM_WRONG', $num_wrong);
   $score->put('NUM_REDUNDANT', $num_redundant);
   $subtree->{SCORE} = $score;
+}
+
+# To get the number of correct submission of the ec
+sub get_correct_submissions {
+  my ($self, $ec) = @_;
+  my $correct_submissions = 0;
+  my $subtree = $self->get($ec);
+  foreach my $submission ( @{$subtree->{SUBMISSIONS} || []} ) {
+    $correct_submissions++ if $submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
+                              $self->is_path_correct($ec, $submission->{QUERY_ID});
+  }
+  $correct_submissions;
+}
+
+# To determine correctness of the path of a submission
+sub is_path_correct {
+  my ($self, $ec, $query_id) = @_;
+  my @ec_components = split(/:/, $ec);
+  my $base_query_id = shift @ec_components;
+  # The path is correct if you hit the top node
+  return 'true' if @ec_components == 1;
+  my $parent_ec = $base_query_id;
+  pop @ec_components;
+  $parent_ec .= ":". join(":", @ec_components) if @ec_components;
+  my $parent_ectree = $self->get($parent_ec);
+  foreach my $parent_submission (@{$parent_ectree->{SUBMISSIONS} || []} ) {
+    # Parent submission must not only be correct but its path should also be correct
+    # Check this recursively
+    if ($parent_submission->{ASSESSMENT}{JUDGMENT} eq 'CORRECT' &&
+	$parent_submission->{TARGET_QUERY_ID} eq $query_id) {
+      return $self->is_path_correct($parent_ec, $parent_submission->{QUERY_ID});
+    }
+    elsif ($parent_submission->{TARGET_QUERY_ID} eq $query_id) {
+      return 0;
+    }
+  }
 }
 
 # To score a set of queries, score the subtree for each query
@@ -3739,4 +3625,3 @@ $logger->close_error_output();
 # 1.0 - Initial version
 
 1;
-

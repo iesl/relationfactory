@@ -62,9 +62,10 @@ public class PatternPrediction {
       if (null != cpm) {
         List<String> arguments = cpm.arguments(sentence, false);
         for (int argInd = 1; argInd < arguments.size(); argInd += 2) {
-          String slot = arguments.get(argInd);
-          String qid = DocumentExtractor.canonicalArg(sentence, 0, rel);
 
+          String qid = DocumentExtractor.canonicalArg(sentence, 0, rel);
+//          String slot = arguments.get(argInd);
+          String slot = DocumentExtractor.canonicalArg(sentence, 1, rel);
 
           int targetStart = DocumentExtractor.getArgStart(sentence, rel, 0);
           int targetEnd =  DocumentExtractor.getArgEnd(sentence, rel, 0);
@@ -80,7 +81,7 @@ public class PatternPrediction {
               append("\t").append(Integer.toString(targetEnd)).
               append("\t").append(Integer.toString(slotStart)).
               append("\t").append(Integer.toString(slotEnd)).
-              append("\t").append("1.0");//. 
+              append("\t").append("1.0");//.
 //              append("\n");
           System.out.println(bw.toString());
         }

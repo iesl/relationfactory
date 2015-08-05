@@ -80,7 +80,7 @@ public class PatternPrediction {
               append("\t").append(Integer.toString(targetEnd)).
               append("\t").append(Integer.toString(slotStart)).
               append("\t").append(Integer.toString(slotEnd)).
-              append("\t").append(DocumentExtractor.textFromTokens(sentence));//.
+              append("\t").append("1.0");//.
 //              append("\n");
           System.out.println(bw.toString());
         }

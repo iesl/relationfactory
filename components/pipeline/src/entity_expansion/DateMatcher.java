@@ -148,7 +148,7 @@ public class DateMatcher {
       String yearDecimal = m.group(2);
       year = yearCentury + yearDecimal;
       month = m.group(3);
-      day = m.group(5);
+      day = m.group(4);
     }
     // obtain normalized forms
     // Numbers for months

@@ -7,6 +7,8 @@
 
 .SECONDARY:
 
+modules=$(shell $(TAC_ROOT)/bin/get_config.sh modules default)
+
 # copies query.xml from location specified in config file
 hop1_query.xml:
 	cp $(shell $(TAC_ROOT)/bin/get_expand_config.sh query.xml) $@
@@ -18,8 +20,8 @@ hop1_query.xml:
 index:
 	$(TAC_ROOT)/components/bin/create_index.sh $@
 
-hop2_query.xml: hop1_query.xml hop1_response_fast_pp14_noNIL
-	/home/beroth/canvas/workspace/tackbp2014/bin/CS-GenerateQueries.pl hop1_query.xml hop2_query.xml hop1_response_fast_pp14_noNIL
+hop2_query.xml: hop1_query.xml hop1_response_$(modules)_pp14_noNIL
+	/home/beroth/canvas/workspace/tackbp2014/bin/CS-GenerateQueries.pl hop1_query.xml hop2_query.xml hop1_response_$(modules)_pp14_noNIL
 
 # Retrieves ranked list document ids/files.
 %_dscore: %_query_expanded.xml index
@@ -47,6 +49,19 @@ hop2_query.xml: hop1_query.xml hop1_response_fast_pp14_noNIL
 	$(TAC_ROOT)/components/bin/predictions_inverses.sh $+ $@
 %_predictions_classifier: %_predictions_classifier_inv
 	$(TAC_ROOT)/components/bin/undo_invert_predictions.sh $+ $@
+
+%_candidates_standard: %_candidates
+	$(TAC_ROOT)/components/bin/filter_standard_rels.sh $+ $@
+
+# Neural network predictions & response.
+%_predictions_nn_raw: %_candidates_standard
+	$(TAC_ROOT)/components/bin/predictions_nn.sh $+ $@
+
+%_predictions_nn: %_predictions_nn_raw
+	$(TAC_ROOT)/components/bin/filter_predictions_tuned.sh _nn  $+ $@
+
+%_response_nn: %_query_expanded.xml %_predictions_nn
+	$(TAC_ROOT)/components/bin/response.sh $+ $@
 
 # Converts candidates into protocol-buffer format.
 %_candidates.pb: %_candidates
@@ -76,8 +91,26 @@ hop2_query.xml: hop1_query.xml hop1_response_fast_pp14_noNIL
 %_response_alternate_names: %_query_expanded.xml %_dtag %_dscore
 	$(TAC_ROOT)/components/bin/alternate_names.sh $+ $@
 
+hop1:
+	mkdir -p $@
+
+hop2:
+	mkdir -p $@
+
+%_response_umass: % %_query.xml
+	$(TAC_ROOT)/components/bin/umass_wrapper.sh $+ $@
+
 # modules that run fast (1)
 %_response_fast: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_induced_patterns %_response_patterns
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
+%_response_default: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_patterns
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
+%_response_all: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_patterns %_response_nn %_response_umass
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
+%_response_stacking: %_query_expanded.xml %_response_classifier %_response_shortened_patterns %_response_patterns %_response_umass
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
 #%_response_shortened_patterns_plus: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_induced_patterns %_response_patterns
@@ -118,7 +151,7 @@ hop2_%_pp14: hop2_% hop2_query_expanded.xml /dev/null
 %_pp12: % query_expanded.xml
 	$(TAC_ROOT)/components/bin/postprocess.sh $+ $@
 
-response_packaged: hop1_query.xml hop1_response_fast_pp14_noNIL hop2_response_fast_pp14_noNIL
+response_packaged: hop1_query.xml hop1_response_$(modules)_pp14_noNIL hop2_response_$(modules)_pp14_noNIL
 	$(TAC_ROOT)/components/bin/package_kb.sh $+ $@
 
 response_validated: response_packaged hop1_query.xml

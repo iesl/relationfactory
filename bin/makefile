@@ -5,6 +5,8 @@
 #
 # Author: Benjamin Roth
 
+response_modules=$(shell $(TAC_ROOT)/bin/get_config.sh query.xml response_default)
+
 # copies query.xml from location specified in config file
 query.xml:
 	cp $(shell $(TAC_ROOT)/bin/get_expand_config.sh query.xml) $@

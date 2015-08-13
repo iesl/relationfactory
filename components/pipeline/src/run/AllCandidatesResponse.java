@@ -24,12 +24,17 @@ public class AllCandidatesResponse {
    * @throws IOException
    */
   public static void main(String[] args) throws IOException {
-    if (args.length != 2) {
-      System.err.println("AllCandidatesResponse <query_expanded_xml> <score>");
+    if (args.length != 2 && args.length != 3) {
+      System.err.println("AllCandidatesResponse <query_expanded_xml> <score> [<runid>]");
       return;
     }
     QueryList ql = new QueryList(args[0]);
     Double score = Double.parseDouble(args[1]);
+
+    String runid = "lsv";
+    if (args.length == 3) {
+      runid = args[2];
+    }
     
     Responses r = new Responses(ql);
     
@@ -38,7 +43,7 @@ public class AllCandidatesResponse {
     for (String line; (line = candBr.readLine()) != null;) {
       Candidate cand = Candidate.fromDelimLine(line);
       
-      r.addResponse2012(cand.getQid(), cand.getRel(), "lsv", 
+      r.addResponse2012(cand.getQid(), cand.getRel(), runid,
           cand.getIdentifier(), cand.getFiller(), 0, 0, 0, 0, score);
     }
     candBr.close();

@@ -16,9 +16,9 @@ import util.Responses;
 
 public class WeightedPatternResponse {
   public static void main(String[] args) throws IOException {
-    if (args.length != 3 && args.length != 4 && args.length != 5) {
+    if (args.length != 3 && args.length != 4 && args.length != 5 && args.length != 6) {
       System.err.println("WeightedPatternResponse " +
-          "<query_expanded_xml> <candidates> <weighted_patterns> [<min_score>] [<shortened=true|false>]");
+          "<query_expanded_xml> <candidates> <weighted_patterns> [<min_score>] [<shortened=true|false>] [<runid>]");
       System.err.println("A response is written to Stdout.");
       return;
     }
@@ -31,8 +31,12 @@ public class WeightedPatternResponse {
       minScore = Double.parseDouble(args[3]);
     }
     boolean shortened = false;
-    if (args.length == 5) {
+    if (args.length >= 5) {
       shortened = args[4] == "true";
+    }
+    String runid = "lsv";
+    if (args.length == 6) {
+      runid = args[5];
     }
 
       // Read patterns.
@@ -68,7 +72,7 @@ public class WeightedPatternResponse {
       }
       //SF2     org:date_dissolved      2007    AFP_ENG_20080408.0582.LDC2009T13.3      23      26      12      13      The number of trademark registration applications filed by foreigners totalled 103,000 in 2007 , making up 14.5 percent of the total , the China News Agency reported on its website , citing figures from an industry forum .
       Candidate cand = Candidate.fromDelimLine(line);
-      r.addResponse2012(cand.getQid(), cand.getRel(), "lsv", 
+      r.addResponse2012(cand.getQid(), cand.getRel(), runid,
           cand.getIdentifier(), cand.getFiller(), 0, 0, 0, 0, score);
     }
     br.close();

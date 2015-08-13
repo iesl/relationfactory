@@ -21,7 +21,9 @@ index:
 	$(TAC_ROOT)/components/bin/create_index.sh $@
 
 hop2_query.xml: hop1_query.xml hop1_response_$(modules)_pp15_noNIL
-	$(TAC_ROOT)/components/tac2015/CS-GenerateQueries.pl hop1_query.xml hop2_query.xml hop1_response_$(modules)_pp15_noNIL
+	$(TAC_ROOT)/components/bin/generate_queries2015.sh hop1_query.xml hop2_query.xml hop1_response_$(modules)_pp15_noNIL
+#$(TAC_ROOT)/components/tac2015/CS-GenerateQueries.pl hop1_query.xml hop2_query.xml hop1_response_$(modules)_pp15_noNIL
+
 
 # Retrieves ranked list document ids/files.
 %_dscore: %_query_expanded.xml index

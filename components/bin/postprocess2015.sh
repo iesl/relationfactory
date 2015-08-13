@@ -6,7 +6,7 @@ ORG_MAP=$3
 OUTPUT=$4
 
 LINKSTAT=`$TAC_ROOT/bin/get_expand_config.sh wikilinks /dev/null`
-relconfig2015=$TAC_CONFIG/config/relations_coldstart2015_new.config
+relconfig2015=$TAC_ROOT/config/relations_coldstart2015_new.config
 
 # Bring date into TIMEX2 format if possible.
 correct_date=`mktemp` 

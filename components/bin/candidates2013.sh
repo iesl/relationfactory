@@ -20,3 +20,6 @@ fi
 $CANDIDATES_CMD > $candidates.tmp && \
 cat $candidates.tmp | $TAC_ROOT/components/bin/run.sh run.MatchRealOffsets $dscore \
 > $candidates
+
+
+rm $candidates.tmp

@@ -98,7 +98,10 @@ while(<I>){
     }
 
     my $str = join(' ',@mappedToks);
-    print O "$rel\t$lr\t$str\n";
+    if($lr == 0){
+	$rel .= "-reverse";
+    }
+    print O "$rel\t$str\n";
 
 }
 

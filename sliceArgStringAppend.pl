@@ -1,4 +1,4 @@
-use strict;
+
 open(I,$ARGV[0])||die;
 open(M,$ARGV[1])||die;
 my $flip = $ARGV[2];

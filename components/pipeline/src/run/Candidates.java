@@ -193,7 +193,7 @@ public class Candidates {
       }
       // "<relation> argtag <TAG1> <TAG2> ... <TAGn>"
       String[] parts = line.split("\\s+",3);
-      if (parts[1].equals("argtag")) {
+      if (parts[1].equals("argtag") || parts[1].equals("arg2tag")) {
         for (String tag : parts[2].split("\\s+")) {
           relToArgtags.put(parts[0], tag);
         }        

@@ -21,6 +21,7 @@ import entity_expansion.MaxLinkEntityExpander;
 
 public class Responses {
 
+  String runId = "lsv";
   QueryList ql;
   private final static double MIN_SCORE = 0.0001;
 
@@ -83,6 +84,10 @@ public class Responses {
       return fields[1];
     }
 
+    public String getRunId() {
+      return fields[2];
+    }
+
     public boolean isNIL() {
       return fields.length == 4 && fields[3].equals("NIL");
     }
@@ -139,6 +144,8 @@ public class Responses {
     // TODO Auto-generated method stub
     for (String responseLine; (responseLine = responseBr.readLine()) != null;) {
       Response2012 r = new Response2012(responseLine);
+      this.runId = r.getRunId();
+
       if (r.isNIL()) {
         continue;
       }
@@ -157,8 +164,6 @@ public class Responses {
    * No redundancy elimination whatsoever is done, so literally same slots may
    * be written out.
    * 
-   * @param ql
-   * @param tupleToResponses
    * @param teamId
    * @param bw
    * @throws IOException
@@ -305,7 +310,7 @@ public class Responses {
   }
   
   public void writeResponse(BufferedWriter bw) throws IOException {
-    writeResponse("lsv", bw);
+    writeResponse(runId, bw);
   }
   
   public Collection<Response2012> getResponses2012() {

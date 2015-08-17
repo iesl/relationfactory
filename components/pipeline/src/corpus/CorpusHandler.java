@@ -114,7 +114,7 @@ public class CorpusHandler extends DefaultHandler {
       textBuilder = null;
     } else {
       if (textBuilder != null) {
-        logger.warn("Unahndled element withoin text: " + localName);
+        logger.warn("Unhandled element within text: " + localName);
         textBuilder.append("\n\n" + fieldBuilder.toString().trim() + "\n\n");
       }
     }
@@ -133,6 +133,9 @@ public class CorpusHandler extends DefaultHandler {
       currentDoc = new CorpusDocument();
       if (atts.getValue("id") != null) {
         currentDoc.id = atts.getValue("id");
+      }
+      if (atts.getValue("docid") != null) {
+        currentDoc.id = atts.getValue("docid");
       }
       if (atts.getValue("type") != null) {
         currentDoc.type = atts.getValue("type");

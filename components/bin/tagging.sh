@@ -32,4 +32,4 @@ cat $1.pasted.dtag \
            $SPECIALENT/CAUSE_DEATH $SPECIALENT/CHARGES > $2
 
 # Clean up tmp files
-#rm -f $1.conll.tmp  $1.sequor.tmp $1.pasted $1.pasted.dtag
+rm -f $1.conll.tmp  $1.sequor.tmp $1.pasted $1.pasted.dtag

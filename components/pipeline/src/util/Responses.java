@@ -163,7 +163,7 @@ public class Responses {
    * Scores are normalized to lie between 0 and 1.
    * No redundancy elimination whatsoever is done, so literally same slots may
    * be written out.
-   * 
+   *
    * @param teamId
    * @param bw
    * @throws IOException

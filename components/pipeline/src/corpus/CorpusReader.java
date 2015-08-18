@@ -85,8 +85,15 @@ public class CorpusReader {
         } else if (lowerline.startsWith("<doc id=")) {
           // <DOC id="WPB_ENG_20100301.0003" type="story">
           id = line.split("\"",3)[1];
+        } else if (lowerline.startsWith("<doc docid=")) {
+          //<DOC docid="ENG_NW_001278_20130124_F00012KQM">
+          id = line.split("\"",3)[1];
         } else if (lowerline.startsWith("</doc>")) {
           docs.add(new RawCorpusDocument(id.trim(), fn, text.toString()));
+          text = new StringBuilder();
+          linestartOffset = 0;
+          id = "";
+        } else if (lowerline.startsWith("<?xml ")) {
           text = new StringBuilder();
           linestartOffset = 0;
           id = "";

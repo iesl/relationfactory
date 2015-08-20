@@ -88,6 +88,8 @@ public class CorpusReader {
         } else if (lowerline.startsWith("<doc docid=")) {
           //<DOC docid="ENG_NW_001278_20130124_F00012KQM">
           id = line.split("\"",3)[1];
+        } else if (lowerline.startsWith("<doc    id=")) {
+          id = line.split("\"",3)[1];
         } else if (lowerline.startsWith("</doc>")) {
           docs.add(new RawCorpusDocument(id.trim(), fn, text.toString()));
           text = new StringBuilder();

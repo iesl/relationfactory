@@ -65,6 +65,7 @@ public class MatchRealOffsets {
   // For sentences longer than this, no matching will take place.
   private static int SENTENCE_MAXCHARS = 2000;
 
+
   // Map: DocId -> path
   private Map<String, String> docpaths;
   // Map: DocId -> Sentence -> List of candidates with this sentence

@@ -26,12 +26,21 @@ public class Candidates {
  
   static void printInstances(List<String> lines, Query q, 
       Multimap<String, String> relToArgtags, String sentenceId) {
-    
+
+    logger.debug("Sentence id: " + sentenceId);
+
+    logger.debug("number of lines: " + lines.size());
+
     List<String> alternatives = new ArrayList<String>();
+
+    logger.debug("Query name: " + q.getName());
+
     if (!q.getName().equals("")) {
       alternatives.add(q.getName());
     }
     alternatives.addAll(q.getAliases());
+
+    logger.debug("Number of query aliases: " + alternatives.size());
     
     StringBuilder sb = new StringBuilder();
     String sep = "";
@@ -41,6 +50,9 @@ public class Candidates {
     }
     // Check for matches of the query or aliases.
     String sentence = sb.toString();
+
+    logger.debug("Sentence from lines: " + sentence);
+
     String[] tokens = sentence.split(" ");
     if (tokens.length != lines.size()) {
       logger.error("Unexpected tokenization, Ignoring: " + sentence);
@@ -53,6 +65,9 @@ public class Candidates {
       if (i == 0 || sentence.charAt(i-1) == ' ') {
         int endArg = -1;
         for (String al : alternatives) {
+          logger.debug("Matching query: " + al);
+          logger.debug("At position: " + wNr);
+
           if ((sentence + " ").substring(i).startsWith(al + " ")) {
             int currEndArg = wNr + al.split(" ").length;
             if (currEndArg > endArg) {
@@ -69,11 +84,17 @@ public class Candidates {
         wNr += 1;
       }
     }
+
+    logger.debug("Number of query matches found: " + matchingStartQueries);
     
     for (String rel : q.getRelations()) {
+
+      logger.debug("Candidates generation for relation: " + rel);
+
       Set<String> startTags = new HashSet<String>();
       Set<String> inTags = new HashSet<String>();
       for (String tag : relToArgtags.get(rel)) {
+        logger.debug("Relation uses tag: " + tag);
         // Supports both B-I-O and B-I-L-O-U tag encodings.
         startTags.add("B-" + tag);
         startTags.add("U-" + tag);
@@ -93,6 +114,7 @@ public class Candidates {
           matchingEndTags.add(lineNr);
         }
         if (startTags.contains(lineParts[1])) {
+          logger.debug("Matching token/tag: " + lineParts[0] + "/" + lineParts[1]);
           matchingStartTags.add(lineNr);
         }
       }
@@ -102,13 +124,20 @@ public class Candidates {
       }
       
       if (matchingStartTags.size() != matchingEndTags.size()) {
+        logger.error("Unexpected tagging for: " + sentenceId);
         throw new IllegalStateException("Unexpected tagging for: " + sentenceId);
       }
+
+      logger.debug("Number of matching tag sequences: " + matchingStartTags.size());
+
       
       // For each slot candidate, get the closest query match and print out.
       // Print out every slot candidate only once.
       Set<String> printedSlots = new HashSet<String>(matchingStartTags.size());
       for (int j = 0; j< matchingStartTags.size(); ++j) {
+
+        logger.debug("Building candidate for slot filler with start/end: " + matchingStartTags.get(j) + "/" + matchingEndTags.get(j));
+
         int absDist = Integer.MAX_VALUE;
         int closestStartTag = -1;
         int closestEndTag = -1;
@@ -116,6 +145,7 @@ public class Candidates {
         int closestEndQuery = -1;
         for (int i = 0; i < matchingStartQueries.size(); ++i) {
           if (matchingEndQueries.get(i) <= matchingStartTags.get(j)) {
+            logger.debug("Found query match before slot filler: " + matchingStartQueries.get(i) + "/" + matchingEndQueries.get(i) );
             int currAbsDist = Math.abs(matchingStartTags.get(j) - matchingEndQueries.get(i));
             if (currAbsDist < absDist) {
               absDist = currAbsDist;
@@ -125,6 +155,7 @@ public class Candidates {
               closestEndQuery = matchingEndQueries.get(i);
             }
           } else if (matchingEndTags.get(j) <= matchingStartQueries.get(i)) {
+            logger.debug("Found query match after slot filler: " + matchingStartQueries.get(i) + "/" + matchingEndQueries.get(i) );
             int currAbsDist = Math.abs(matchingStartQueries.get(i) - matchingEndTags.get(j));
             if (currAbsDist < absDist) {
               absDist = currAbsDist;
@@ -133,6 +164,8 @@ public class Candidates {
               closestStartQuery = matchingStartQueries.get(i);
               closestEndQuery = matchingEndQueries.get(i);
             }              
+          } else {
+            logger.debug("Found query match overlapping with slot filler: " + matchingStartQueries.get(i) + "/" + matchingEndQueries.get(i) );
           }
         }
         if (closestStartTag > -1) {
@@ -150,10 +183,18 @@ public class Candidates {
             continue;
           }
           printedSlots.add(slotVal);
+
+          logger.debug("Writing candidate with signature: " + q.getId() + "\t" + rel + "\t" + slotVal + "\t" +
+              sentenceId + "\t" + closestStartQuery + "\t" + closestEndQuery +
+              "\t" + closestStartTag + "\t" + closestEndTag);
+
           System.out.println(q.getId() + "\t" + rel + "\t" + slotVal + "\t" + 
               sentenceId + "\t" + closestStartQuery + "\t" + closestEndQuery + 
               "\t" + closestStartTag + "\t" + closestEndTag + "\t" + 
               sentence.replace('\t', ' '));
+        } else {
+          logger.debug("No valid query / slot combination found.");
+
         }
       }
     }

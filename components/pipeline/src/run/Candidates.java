@@ -65,10 +65,9 @@ public class Candidates {
       if (i == 0 || sentence.charAt(i-1) == ' ') {
         int endArg = -1;
         for (String al : alternatives) {
-          logger.debug("Matching query: " + al);
-          logger.debug("At position: " + wNr);
-
           if ((sentence + " ").substring(i).startsWith(al + " ")) {
+            logger.debug("Matching query: " + al);
+            logger.debug("At position: " + wNr);
             int currEndArg = wNr + al.split(" ").length;
             if (currEndArg > endArg) {
               endArg = currEndArg;

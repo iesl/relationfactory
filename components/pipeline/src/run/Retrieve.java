@@ -60,17 +60,19 @@ public class Retrieve {
    */
   public static void main(String[] args) throws IOException, ParseException {
     if (args.length < 4) {
-      System.err.println("java Retrieval <query_xml> <indexDir> <numResults> <reponse_file>");
+      System.err.println("java Retrieval <query_xml> <indexDir> <numResults> <reponse_file> [<strict=true|false>]");
       System.err.println("query_xml:  file containing query (optionally expanded).");
       System.err.println("indexDir:   directory where index is located.");
       System.err.println("numResults: max. number of hits returned.");
       System.err.println("reponse:    resulting trec_eval response.");
+      System.err.println("strict:     whether retrieval is strict (no relaxed matching if first attempt failed).");
       return;
     }
     String queryXmlFn = args[0];
     String indexDir   = args[1];
     int numResults = Integer.parseInt(args[2]);
     String responseFn = args[3];
+    boolean strict = args.length >= 5 && args[4].equals("true");
     
     QueryList ql = new QueryList(queryXmlFn);
 
@@ -110,7 +112,7 @@ public class Retrieve {
       query = parser.parse(queryStr);
       TopDocs hits = is.search(query, numResults);
       
-      if (hits.scoreDocs.length <  Math.min(MIN_RETRIEVE, numResults)) {
+      if (hits.scoreDocs.length <  Math.min(MIN_RETRIEVE, numResults) && !strict) {
         // Backoff: retrieve one document with any expansion.
         queryStr = "\"" + QueryParser.escape(q.getName()) + "\"";
         for (String alias : q.getAliases()) {

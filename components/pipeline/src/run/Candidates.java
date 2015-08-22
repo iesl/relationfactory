@@ -84,7 +84,7 @@ public class Candidates {
       }
     }
 
-    logger.debug("Number of query matches found: " + matchingStartQueries);
+    logger.debug("Number of query matches found: " + matchingStartQueries.size());
     
     for (String rel : q.getRelations()) {
 

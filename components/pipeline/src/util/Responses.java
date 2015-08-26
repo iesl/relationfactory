@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import query.QueryList;
 import query.QueryList.Query;
 
@@ -107,6 +108,12 @@ public class Responses {
           new Response2012(responseLine.substring(0, lastTab) + '\t' + 
               formatScore(score));
     }
+
+    public Response2012 withNewTeamId(String newTeamId) {
+      int idStart = StringUtils.ordinalIndexOf(responseLine, "\t", 2) + 1;
+      int idEnd = StringUtils.ordinalIndexOf(responseLine, "\t", 3);
+      return new Response2012(responseLine.substring(0, idStart) + newTeamId + responseLine.substring(idEnd));
+    }
     
     public String getSlotFill() {
       return fields[4];
@@ -195,7 +202,7 @@ public class Responses {
           double score = response.getScore();
           // Score must lie between 0 and 1.
           score = Math.min(1.0, score);
-          bw.append(response.withNewScore(score).toString());
+          bw.append(response.withNewTeamId(teamId).withNewScore(score).toString());
           bw.newLine();
         } else {
           bw.append(tuple + "\t" + teamId + "\tNIL");
@@ -211,7 +218,7 @@ public class Responses {
           double normScoreBy = Math.max(1.0, bestScoreForTuple);
           for (Response2012 response : tupleToResponses.get(tuple)) {
             double score = response.getScore() / normScoreBy;
-            bw.append(response.withNewScore(score).toString());
+            bw.append(response.withNewTeamId(teamId).withNewScore(score).toString());
             bw.newLine();
           }  
         } else {

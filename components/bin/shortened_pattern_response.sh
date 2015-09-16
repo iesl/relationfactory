@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 PATTERNS=`$TAC_ROOT/bin/get_expand_config.sh shortened_patterns`
 runid=`$TAC_ROOT/bin/get_config.sh runid lsv`

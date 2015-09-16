@@ -2,6 +2,9 @@
 # <expanded_query> <dtag> <dscore> <candidates>
 # New candidate generation from 2013 onwards: Restores the original document offsets for sentences
 # and args and encodes them in the document id.
+
+set -e
+
 expanded_query=$1
 dtag=$2
 dscore=$3
@@ -18,7 +21,7 @@ if [ "$COREF" = "true" ]; then
 fi
 
 $CANDIDATES_CMD > $candidates.tmp && \
-cat $candidates.tmp | $TAC_ROOT/components/bin/run.sh run.MatchRealOffsets $dscore \
+cat $candidates.tmp | $TAC_ROOT/components/bin/run.sh -Xmx128g run.MatchRealOffsets $dscore \
 > $candidates
 
 

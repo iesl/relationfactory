@@ -10,8 +10,11 @@
 modules=$(shell $(TAC_ROOT)/bin/get_config.sh modules default)
 
 # copies query.xml from location specified in config file
-hop1_query.xml:
+query.xml:
 	cp $(shell $(TAC_ROOT)/bin/get_expand_config.sh query.xml) $@
+
+hop1_query.xml: query.xml
+	$(TAC_ROOT)/components/bin/generate_queries2015.sh query.xml hop1_query.xml
 
 # Adds expansiond to original queries and explicitly lists relations.
 %_query_expanded.xml: %_query.xml
@@ -20,8 +23,8 @@ hop1_query.xml:
 index:
 	$(TAC_ROOT)/components/bin/create_index.sh $@
 
-hop2_query.xml: hop1_query.xml hop1_response_$(modules)_pp15_noNIL
-	$(TAC_ROOT)/components/bin/generate_queries2015.sh hop1_query.xml hop2_query.xml hop1_response_$(modules)_pp15_noNIL
+hop2_query.xml: query.xml hop1_response_$(modules)_pp15_noNIL
+	$(TAC_ROOT)/components/bin/generate_queries2015.sh query.xml hop2_query.xml hop1_response_$(modules)_pp15_noNIL
 #$(TAC_ROOT)/components/tac2015/CS-GenerateQueries.pl hop1_query.xml hop2_query.xml hop1_response_$(modules)_pp15_noNIL
 
 
@@ -30,12 +33,14 @@ hop2_query.xml: hop1_query.xml hop1_response_$(modules)_pp15_noNIL
 	$(TAC_ROOT)/components/bin/retrieve_using_index.sh $+ $@
 
 # Tokenizes/splits sentences from retrieved docs.
+# Parallelized sentence splitting.
 %_drank: %_query_expanded.xml %_dscore
-	$(TAC_ROOT)/components/bin/split_sentences2.sh $+ $@
+	$(TAC_ROOT)/components/bin/split_sentences2_parallel.sh $+ $@
 
 # Tags sentences.
+# Replaced relationfactory tagger by UMass tagger.
 %_dtag: %_drank
-	$(TAC_ROOT)/components/bin/tagging.sh $+ $@
+	$(TAC_ROOT)/components/bin/umass_tagging.sh $+ $@
 
 # Candidates from sentences where Query string and tags match.
 %_candidates: %_query_expanded.xml %_dtag %_dscore
@@ -52,15 +57,17 @@ hop2_query.xml: hop1_query.xml hop1_response_$(modules)_pp15_noNIL
 %_predictions_classifier: %_predictions_classifier_inv
 	$(TAC_ROOT)/components/bin/undo_invert_predictions.sh $+ $@
 
-%_candidates_standard: %_candidates
-	$(TAC_ROOT)/components/bin/filter_standard_rels.sh $+ $@
-
+#%_candidates_standard: %_candidates
+#	$(TAC_ROOT)/components/bin/filter_standard_rels.sh $+ $@
 # Neural network predictions & response.
-%_predictions_nn_raw: %_candidates_standard
-	$(TAC_ROOT)/components/bin/predictions_nn.sh $+ $@
+#%_predictions_nn_raw: %_candidates_standard
+#	$(TAC_ROOT)/components/bin/predictions_nn.sh $+ $@
 
 %_predictions_nn: %_predictions_nn_raw
 	$(TAC_ROOT)/components/bin/filter_predictions_tuned.sh _nn  $+ $@
+
+%_predictions_nn_raw: %_candidates
+	$(TAC_ROOT)/components/bin/predictions_nn_inv.sh $+ $@
 
 %_response_nn: %_query_expanded.xml %_predictions_nn
 	$(TAC_ROOT)/components/bin/response.sh $+ $@
@@ -109,7 +116,27 @@ hop2:
 %_response_default: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_patterns
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
+# Same as 'default'.
+%_response_UMass_IESL1: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_patterns
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
 %_response_all: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_patterns %_response_nn %_response_umass
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
+
+# Same as 'all' but without response_umass (until it is fixed).
+%_response_UMass_IESL2: %_query_expanded.xml %_response_alternate_names %_response_classifier %_response_shortened_patterns %_response_patterns %_response_nn
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
+# Same as UMass_IESL1, but with neural networks instead of svm 
+%_response_UMass_IESL3: %_query_expanded.xml %_response_alternate_names %_response_nn %_response_shortened_patterns %_response_patterns
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
+%_response_UMass_IESL4: %_query_expanded.xml %_response_umass %_response_alternate_names %_response_patterns %_response_induced_patterns %_response_classifier
+	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
+
+# run corresponding to KBCS run 1
+%_response_UMass_IESL5: %_query_expanded.xml %_response_classifier %_response_shortened_patterns
 	$(TAC_ROOT)/components/bin/merge_responses.sh $+ > $@
 
 %_response_stacking: %_query_expanded.xml %_response_classifier %_response_shortened_patterns %_response_patterns %_response_umass

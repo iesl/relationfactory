@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # This script reads document ids from a .dscore file and
 # creates a file with those sentences in the documents
@@ -31,12 +32,12 @@ export PERL5LIB="$SEG_HOME/src" # split.pl needs this
 # ExtractText2: 0m30.609s
 
 coref_window=`$TAC_ROOT/bin/get_config.sh coref_window 0`
-echo "Using window of $coref_window ..."
+#echo "Using window of $coref_window ..."
 
 $TAC_ROOT/components/bin/run.sh run.ExtractText2 $DSCORE \
 | sed 's= \.\.\. @=...@=g' \
 | $SEG_HOME/bin/split2.pl \
 | $SEG_HOME/bin/tokenize2.sed \
-| $TAC_ROOT/components/bin/run.sh run.Format $QUERY_EXPANDED $coref_window \
+| $TAC_ROOT/components/bin/run.sh -Xmx1g run.Format $QUERY_EXPANDED $coref_window \
 > $DRANK
 

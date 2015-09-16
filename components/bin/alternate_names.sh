@@ -1,5 +1,6 @@
 #!/bin/sh
 # <expanded_query> <dtag> <dscore> <response>
+set -e
 expanded_query=$1
 dtag=$2
 dscore=$3

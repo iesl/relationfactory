@@ -28,6 +28,7 @@ public static void main(String[] args) throws IOException {
 
     if (!relToMinScore.containsKey(rel)) {
       System.err.println("No score for: " + rel);
+      continue;
     }
     
     if (score < relToMinScore.get(rel)) {
